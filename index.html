@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Updates Dashboard</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/themes.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="theme-dark">
+    <div id="app" class="app-container">
+        <!-- Navigation -->
+        <nav id="navigation" class="nav-container">
+            <div class="nav-content">
+                <div class="nav-brand">
+                    <h1 class="nav-title">Monthly Updates</h1>
+                </div>
+                <div class="nav-tabs" id="project-tabs">
+                    <!-- Active project tab and dropdown will be dynamically populated -->
+                </div>
+                <div class="nav-actions">
+                    <button id="add-project-btn" class="btn btn-secondary">
+                        <i data-lucide="plus"></i>
+                        <span>New Project</span>
+                    </button>
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                        <i data-lucide="moon" class="theme-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main id="main-content" class="main-content">
+            <!-- Welcome/Empty State -->
+            <div id="welcome-page" class="page active">
+                <div class="welcome-container">
+                    <div class="welcome-content">
+                        <h2>Welcome to Monthly Updates</h2>
+                        <p>Create your first project to get started with monthly reporting</p>
+                        <button id="create-first-project" class="btn btn-primary">
+                            <i data-lucide="plus"></i>
+                            Create First Project
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Page Template -->
+            <div id="project-page-template" class="page" style="display: none;">
+                <div class="project-header">
+                    <div class="project-title-section">
+                        <h2 class="project-name">Project Name</h2>
+                        <div class="reporting-period">
+                            <span class="period-label">Reporting Period:</span>
+                            <span class="period-dates">Jun 15 - Jul 15, 2024</span>
+                            <span class="period-month">July</span>
+                        </div>
+                    </div>
+                    <div class="project-actions">
+                        <button class="btn btn-secondary" id="edit-project-btn">
+                            <i data-lucide="edit"></i>
+                            Edit Project
+                        </button>
+                        <button class="btn btn-danger" id="delete-project-btn">
+                            <i data-lucide="trash-2"></i>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+
+                <div class="project-content">
+                    <!-- Left Column: Main Content -->
+                    <div class="project-main">
+                        <!-- Project Description -->
+                        <section class="content-section">
+                            <h3>Project Description</h3>
+                            <div class="description-content" contenteditable="true">
+                                Click to add project description...
+                            </div>
+                        </section>
+
+                        <!-- Expected Benefits -->
+                        <section class="content-section">
+                            <h3>Expected Benefits</h3>
+                            <div class="benefits-table-container">
+                                <table class="benefits-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Defined Benefit</th>
+                                            <th>Applicable</th>
+                                            <th>Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>FTE Savings</td>
+                                            <td>
+                                                <select class="benefit-applicable">
+                                                    <option value="">Select</option>
+                                                    <option value="yes">Yes</option>
+                                                    <option value="no">No</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <textarea class="benefit-details" placeholder="Enter details..."></textarea>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Cost Avoidance / Cost Savings</td>
+                                            <td>
+                                                <select class="benefit-applicable">
+                                                    <option value="">Select</option>
+                                                    <option value="yes">Yes</option>
+                                                    <option value="no">No</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <textarea class="benefit-details" placeholder="Enter details..."></textarea>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Program Integrity</td>
+                                            <td>
+                                                <select class="benefit-applicable">
+                                                    <option value="">Select</option>
+                                                    <option value="yes">Yes</option>
+                                                    <option value="no">No</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <textarea class="benefit-details" placeholder="Enter details..."></textarea>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Client Service</td>
+                                            <td>
+                                                <select class="benefit-applicable">
+                                                    <option value="">Select</option>
+                                                    <option value="yes">Yes</option>
+                                                    <option value="no">No</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <textarea class="benefit-details" placeholder="Enter details..."></textarea>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Other</td>
+                                            <td>
+                                                <select class="benefit-applicable">
+                                                    <option value="">Select</option>
+                                                    <option value="yes">Yes</option>
+                                                    <option value="no">No</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <textarea class="benefit-details" placeholder="Enter details..."></textarea>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        <!-- Key Risks/Issues -->
+                        <section class="content-section">
+                            <h3>Key Risks/Issues</h3>
+                            <div class="risks-editor">
+                                <textarea class="risks-content" placeholder="• Enter first risk or issue&#10;• Add additional items on new lines&#10;• Each line will become a bullet point"></textarea>
+                            </div>
+                        </section>
+
+                        <!-- Key Updates -->
+                        <section class="content-section">
+                            <h3>Key Updates</h3>
+                            <div class="updates-editor">
+                                <textarea class="updates-content" placeholder="• Enter first key update&#10;• Add additional updates on new lines&#10;• Each line will become a bullet point"></textarea>
+                            </div>
+                        </section>
+
+                        <!-- Next Steps -->
+                        <section class="content-section">
+                            <h3>Next Steps</h3>
+                            <div class="next-steps-container">
+                                <div class="section-header">
+                                    <button class="btn btn-primary" id="add-step-btn">
+                                        <i data-lucide="plus"></i>
+                                        Add Step
+                                    </button>
+                                </div>
+                                <div class="steps-table-container">
+                                    <table class="steps-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Description</th>
+                                                <th>Owner</th>
+                                                <th>Due Date</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="steps-tbody">
+                                            <!-- Steps will be dynamically populated -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Right Sidebar: Project Details -->
+                    <div class="project-sidebar">
+                        <div class="sidebar-section">
+                            <h4>Project Details</h4>
+                            <div class="detail-group">
+                                <label>Business Lead</label>
+                                <input type="text" class="detail-input" placeholder="Enter business lead name">
+                            </div>
+                            <div class="detail-group">
+                                <label>Initiator</label>
+                                <input type="text" class="detail-input" placeholder="Enter initiator name">
+                            </div>
+                            <div class="detail-group">
+                                <label>Dev Team Lead</label>
+                                <input type="text" class="detail-input" placeholder="Enter dev team lead name">
+                            </div>
+                            <div class="detail-group">
+                                <label>Project Start Date</label>
+                                <input type="date" class="detail-input">
+                            </div>
+                            <div class="detail-group">
+                                <label>Current Project Development Stage</label>
+                                <select class="detail-input">
+                                    <option value="">Select stage</option>
+                                    <option value="prototype">Prototype</option>
+                                    <option value="poc">Proof of Concept</option>
+                                    <option value="pilot">Pilot</option>
+                                </select>
+                            </div>
+                            <div class="detail-group">
+                                <label>Current AI Lifecycle Stage</label>
+                                <select class="detail-input">
+                                    <option value="">Select stage</option>
+                                    <option value="planning-design">Planning & Design</option>
+                                    <option value="data-collection">Data Collection & Processing</option>
+                                    <option value="model-building">Model Building</option>
+                                    <option value="testing-validation">Testing & Validation</option>
+                                    <option value="deployment">Deployment</option>
+                                    <option value="monitoring">Monitoring & Maintenance</option>
+                                </select>
+                            </div>
+                            <div class="detail-group">
+                                <label>Target Date for Start of Next AI Lifecycle Stage</label>
+                                <input type="date" class="detail-input">
+                            </div>
+                            <div class="detail-group">
+                                <label>Target Project Completion Date</label>
+                                <input type="date" class="detail-input">
+                            </div>
+                            <div class="detail-group">
+                                <label>Budget</label>
+                                <input type="text" class="detail-input" placeholder="Enter budget or TBD">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="project-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="project-modal-title">Create New Project</h3>
+                <button class="modal-close" data-modal="project-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="project-form" class="modal-form">
+                <div class="form-group">
+                    <label for="project-name-input">Project Name</label>
+                    <input type="text" id="project-name-input" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" data-modal="project-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="step-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="step-modal-title">Add Next Step</h3>
+                <button class="modal-close" data-modal="step-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="step-form" class="modal-form">
+                <div class="form-group">
+                    <label for="step-description">Description</label>
+                    <textarea id="step-description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="step-owner">Owner</label>
+                    <input type="text" id="step-owner" required>
+                </div>
+                <div class="form-group">
+                    <label for="step-due-date">Due Date</label>
+                    <input type="date" id="step-due-date">
+                </div>
+                <div class="form-group">
+                    <label for="step-status">Status</label>
+                    <select id="step-status" required>
+                        <option value="not-started">Not Started</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="ongoing">Ongoing</option>
+                        <option value="blocked">Blocked</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" data-modal="step-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Step</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils/storage.js"></script>
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/models/data.js"></script>
+    <script src="js/components/navigation.js"></script>
+    <script src="js/components/projects.js"></script>
+    <script src="js/components/modals.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
