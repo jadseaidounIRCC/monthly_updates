@@ -1,0 +1,490 @@
+/* ==========================================================================
+   Modal and Comment Modal Styles
+   ========================================================================== */
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+  /* GPU acceleration hints */
+  will-change: backdrop-filter, opacity;
+  transform: translateZ(0);
+  /* Improve compositing performance */
+  isolation: isolate;
+}
+
+/* Modal Content */
+.modal-content {
+  background: var(--background-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* Ensure solid background for text readability */
+  backdrop-filter: none;
+  position: relative;
+  /* CSS containment for performance */
+  contain: layout style paint;
+  /* GPU acceleration for animations */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+/* Comment Modal Specific */
+.comment-modal {
+  max-width: 800px;
+  width: 90vw;
+}
+
+/* Modal Header */
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--background-tertiary);
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  background: var(--background-hover);
+  color: var(--text-primary);
+}
+
+/* Modal Body */
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.comment-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-height: 70vh;
+}
+
+/* Comment Thread */
+.comment-thread {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 200px;
+}
+
+.no-comments {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
+.no-comments p {
+  margin: 0;
+  font-style: italic;
+}
+
+/* Individual Comments */
+.comment {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  background: var(--background-color);
+  transition: all 0.2s ease;
+}
+
+.comment:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.comment-resolved {
+  opacity: 0.8;
+  border-left: 4px solid var(--success-color);
+}
+
+.comment-reply {
+  margin-left: 2rem;
+  margin-top: 0.5rem;
+  border-left: 3px solid var(--primary-color);
+  background: var(--background-secondary);
+}
+
+.comment-header {
+  padding: 1rem 1.5rem 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.comment-author {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.comment-author strong {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.comment-date {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.resolved-badge {
+  background: var(--success-color);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  background: var(--background-hover);
+  color: var(--text-primary);
+}
+
+.delete-btn:hover {
+  color: var(--danger-color);
+}
+
+.resolve-btn:hover {
+  color: var(--success-color);
+}
+
+.reply-btn:hover {
+  color: var(--primary-color);
+}
+
+.edit-btn:hover {
+  color: var(--warning-color);
+}
+
+.comment-content {
+  padding: 0 1.5rem 1rem;
+}
+
+.comment-text {
+  line-height: 1.6;
+  color: var(--text-primary);
+  word-wrap: break-word;
+}
+
+.comment-replies {
+  margin-top: 1rem;
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--background-tertiary);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+}
+
+.form-control::placeholder {
+  color: var(--text-muted);
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+/* Reply Form */
+.reply-form-container {
+  margin: 1rem 1.5rem 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Edit Comment Form */
+.edit-comment-form {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: var(--background-hover);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+/* Add Comment Section */
+.add-comment-section {
+  border-top: 1px solid var(--border-color);
+  padding-top: 2rem;
+}
+
+.add-comment-section h4 {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+/* Modal Actions */
+.modal-actions {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  background: var(--background-tertiary);
+}
+
+/* Loading States */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Status Badge */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+/* Content Field Wrapper */
+.content-field-wrapper {
+  position: relative;
+}
+
+.content-field-wrapper .comment-icon-wrapper {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+/* Benefit Cell Positioning */
+.benefit-cell-applicable,
+.benefit-cell-details {
+  position: relative;
+}
+
+.benefit-cell-applicable .comment-icon-wrapper,
+.benefit-cell-details .comment-icon-wrapper {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+  
+  .comment-modal {
+    width: 95vw;
+  }
+  
+  .comment-modal-body {
+    max-height: 80vh;
+    padding: 1rem;
+  }
+  
+  .comment-reply {
+    margin-left: 1rem;
+  }
+  
+  .comment-header {
+    padding: 1rem 1rem 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .comment-actions {
+    align-self: flex-end;
+  }
+  
+  .modal-header {
+    padding: 1rem;
+  }
+  
+  .modal-body {
+    padding: 1rem;
+  }
+  
+  .modal-actions {
+    padding: 1rem;
+  }
+}
+
+/* Theme Specific */
+[data-theme="light"] .modal-overlay,
+.theme-light .modal-overlay {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+[data-theme="dark"] .modal-overlay,
+.theme-dark .modal-overlay {
+  background: rgba(0, 0, 0, 0.95);
+}
+
+/* Light theme modal content */
+[data-theme="light"] .modal-content,
+.theme-light .modal-content {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] .modal-header,
+.theme-light .modal-header {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+[data-theme="dark"] .comment:hover {
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+}
+
+/* Animation */
+.modal-overlay {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0) translateZ(0);
+  }
+}
+
+/* Performance optimized animations */
+.modal-overlay {
+  animation: fadeIn 0.15s ease-out;
+  /* Reduce animation time for snappier feel */
+}
+
+.modal-content {
+  animation: slideIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Slightly faster animation for responsiveness */
+}
+
+/* Pre-warm modal styles for instant opening */
+.modal {
+  /* Force layer creation even when hidden */
+  will-change: backdrop-filter, opacity;
+  backface-visibility: hidden;
+}
+
+.modal.show {
+  /* Immediate backdrop filter activation */
+  backdrop-filter: blur(4px);
+}
