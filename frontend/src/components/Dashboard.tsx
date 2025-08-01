@@ -80,15 +80,6 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, onProjectSelect }) => {
     return projects.filter(p => p.currentProjectStage === filterStage);
   }, [projects, filterStage]);
 
-  const getStageColor = (stage: string) => {
-    const colors = {
-      prototype: '#8b5cf6', // Purple
-      poc: '#f59e0b',       // Amber
-      pilot: '#10b981',     // Emerald
-      unknown: '#6b7280'    // Gray
-    };
-    return colors[stage as keyof typeof colors] || colors.unknown;
-  };
 
   const getStageGradient = (stage: string) => {
     const gradients = {
