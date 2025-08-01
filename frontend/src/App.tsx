@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Moon, Sun, Plus, Edit, Trash2, BarChart3 } from 'lucide-react';
+import { Moon, Sun, Plus, Edit, Trash2, BarChart3, Save, X, Check } from 'lucide-react';
 import { Project, Comment } from './types';
 import ApiService from './services/ApiService';
 import CommentModal from './components/CommentModal';
@@ -16,17 +16,54 @@ import './styles/Dashboard.css';
 const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'dark';
+  });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentPage, setCurrentPage] = useState<'welcome' | 'project' | 'dashboard'>('welcome');
   const [projectDescription, setProjectDescription] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  
+  // Project Details State
+  const [projectDetails, setProjectDetails] = useState({
+    businessLead: '',
+    initiator: '',
+    devTeamLead: '',
+    projectStartDate: '',
+    currentProjectStage: '' as 'prototype' | 'poc' | 'pilot' | '',
+    currentAiStage: '' as 'planning-design' | 'data-collection' | 'model-building' | 'testing-validation' | 'deployment' | 'monitoring' | '',
+    targetNextStageDate: '',
+    targetCompletionDate: '',
+    budget: ''
+  });
+  const [isSavingDetails, setIsSavingDetails] = useState(false);
+  
+  // All Benefits State - Everything is now customizable per project
+  const [allProjectBenefits, setAllProjectBenefits] = useState<Array<{
+    id: string;
+    name: string;
+    applicable: 'yes' | 'no' | '';
+    details: string;
+    isEditing?: boolean;
+    isDefault?: boolean; // Track if it's a default benefit for styling
+  }>>([]);
+  const [isSavingBenefits, setIsSavingBenefits] = useState(false);
+  const [showAddBenefit, setShowAddBenefit] = useState(false);
+  const [newBenefitName, setNewBenefitName] = useState('');
+  
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     projectId: string;
     projectName: string;
   }>({ isOpen: false, projectId: '', projectName: '' });
+  
+  const [deleteBenefitModal, setDeleteBenefitModal] = useState<{
+    isOpen: boolean;
+    benefitId: string;
+    benefitName: string;
+  }>({ isOpen: false, benefitId: '', benefitName: '' });
   
   // Comment Modal State
   const [commentModal, setCommentModal] = useState<{
@@ -67,6 +104,38 @@ const App: React.FC = () => {
                 setActiveProject(savedProject);
                 setCurrentPage('project');
                 setProjectDescription(savedProject.description || '');
+                // Load project details
+                setProjectDetails({
+                  businessLead: savedProject.businessLead || '',
+                  initiator: savedProject.initiator || '',
+                  devTeamLead: savedProject.devTeamLead || '',
+                  projectStartDate: savedProject.projectStartDate || '',
+                  currentProjectStage: savedProject.currentProjectStage || '',
+                  currentAiStage: savedProject.currentAiStage || '',
+                  targetNextStageDate: savedProject.targetNextStageDate || '',
+                  targetCompletionDate: savedProject.targetCompletionDate || '',
+                  budget: savedProject.budget || ''
+                });
+                
+                // Load project benefits with localStorage persistence
+                const localBenefitsData = localStorage.getItem(`benefits_${savedProject.id}`);
+                if (localBenefitsData) {
+                  try {
+                    const parsed = JSON.parse(localBenefitsData);
+                    // Handle both old and new localStorage formats
+                    if (Array.isArray(parsed)) {
+                      setAllProjectBenefits(parsed);
+                    } else {
+                      // Old format - convert to new format
+                      loadBenefitsFromProject(savedProject);
+                    }
+                  } catch (error) {
+                    console.error('Error parsing localStorage benefits:', error);
+                    loadBenefitsFromProject(savedProject);
+                  }
+                } else {
+                  loadBenefitsFromProject(savedProject);
+                }
               } else {
                 // Saved project doesn't exist anymore, default to dashboard
                 setCurrentPage('dashboard');
@@ -213,6 +282,10 @@ const App: React.FC = () => {
       setActiveProject(newProject);
       setCurrentPage('project');
       setProjectDescription(newProject.description || '');
+      
+      // Initialize new project with default benefits
+      setAllProjectBenefits(getDefaultBenefits());
+      
       setShowCreateModal(false);
     } catch (error) {
       console.error('Error creating project:', error);
@@ -234,9 +307,164 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSaveProjectDetails = async () => {
+    if (!activeProject) return;
+    
+    setIsSavingDetails(true);
+    try {
+      const updatedProject = await ApiService.updateProject(activeProject.id, projectDetails);
+      setProjects(prev => prev.map(p => p.id === activeProject.id ? updatedProject : p));
+      setActiveProject(updatedProject);
+      // Show success feedback (you could add a toast notification here)
+      console.log('Project details saved successfully');
+    } catch (error) {
+      console.error('Error saving project details:', error);
+      // Show error feedback (you could add a toast notification here)
+    } finally {
+      setIsSavingDetails(false);
+    }
+  };
+
+  // Default benefit templates for new projects
+  const getDefaultBenefits = () => [
+    { id: 'fte-savings', name: 'FTE Savings', applicable: '' as const, details: '', isDefault: true },
+    { id: 'cost-savings', name: 'Cost Avoidance / Cost Savings', applicable: '' as const, details: '', isDefault: true },
+    { id: 'program-integrity', name: 'Program Integrity', applicable: '' as const, details: '', isDefault: true },
+    { id: 'client-service', name: 'Client Service', applicable: '' as const, details: '', isDefault: true }
+  ];
+
+  const handleAddCustomBenefit = () => {
+    if (!newBenefitName.trim()) return;
+    
+    const newBenefit = {
+      id: `custom-${Date.now()}`,
+      name: newBenefitName.trim(),
+      applicable: '' as 'yes' | 'no' | '',
+      details: '',
+      isDefault: false
+    };
+    
+    setAllProjectBenefits(prev => [...prev, newBenefit]);
+    setNewBenefitName('');
+    setShowAddBenefit(false);
+  };
+
+  const showBenefitDeleteConfirmation = (benefitId: string) => {
+    const benefit = allProjectBenefits.find(b => b.id === benefitId);
+    if (benefit) {
+      setDeleteBenefitModal({
+        isOpen: true,
+        benefitId,
+        benefitName: benefit.name
+      });
+    }
+  };
+
+  const handleConfirmBenefitDelete = async () => {
+    setAllProjectBenefits(prev => prev.filter(b => b.id !== deleteBenefitModal.benefitId));
+    setDeleteBenefitModal({ isOpen: false, benefitId: '', benefitName: '' });
+  };
+
+  const handleEditBenefit = (id: string) => {
+    setAllProjectBenefits(prev => prev.map(b => 
+      b.id === id ? { ...b, isEditing: true } : { ...b, isEditing: false }
+    ));
+  };
+
+  const handleSaveBenefitName = (id: string, newName: string) => {
+    if (!newName.trim()) return;
+    setAllProjectBenefits(prev => prev.map(b => 
+      b.id === id ? { ...b, name: newName.trim(), isEditing: false } : b
+    ));
+  };
+
+  const handleCancelEditBenefit = (id: string) => {
+    setAllProjectBenefits(prev => prev.map(b => 
+      b.id === id ? { ...b, isEditing: false } : b
+    ));
+  };
+
+  const handleSaveBenefits = async () => {
+    if (!activeProject) return;
+    
+    setIsSavingBenefits(true);
+    try {
+      // Convert all benefits to database format - each benefit gets its own key
+      const allBenefits = allProjectBenefits.reduce((acc, benefit) => {
+        acc[benefit.id] = {
+          applicable: benefit.applicable,
+          details: benefit.details,
+          benefitName: benefit.name, // Store the benefit name
+          isDefault: benefit.isDefault || false
+        };
+        return acc;
+      }, {} as any);
+
+      const updatedProject = await ApiService.updateProject(activeProject.id, { benefits: allBenefits });
+      setProjects(prev => prev.map(p => p.id === activeProject.id ? updatedProject : p));
+      setActiveProject(updatedProject);
+      
+      // Clear localStorage cache after successful save
+      localStorage.removeItem(`benefits_${activeProject.id}`);
+      
+      console.log('Benefits saved successfully - Fully customizable system active');
+    } catch (error) {
+      console.error('Error saving benefits:', error);
+    } finally {
+      setIsSavingBenefits(false);
+    }
+  };
+
+  const loadBenefitsFromProject = (project: Project) => {
+    const benefits = project.benefits || {};
+    
+    // If project has no benefits, use default template
+    if (Object.keys(benefits).length === 0) {
+      setAllProjectBenefits(getDefaultBenefits());
+      return;
+    }
+    
+    // Load all benefits from database (new format or legacy format)
+    const loadedBenefits = Object.entries(benefits)
+      .filter(([key]) => key !== 'other') // Exclude old 'other' field
+      .map(([id, benefit]: [string, any]) => {
+        // Handle new format with benefitName
+        if (benefit.benefitName) {
+          return {
+            id,
+            name: benefit.benefitName,
+            applicable: benefit.applicable || '',
+            details: benefit.details || '',
+            isDefault: benefit.isDefault || false,
+            isEditing: false
+          };
+        }
+        
+        // Handle legacy format - map old IDs to names
+        const legacyNames: Record<string, string> = {
+          fteSavings: 'FTE Savings',
+          costSavings: 'Cost Avoidance / Cost Savings',
+          programIntegrity: 'Program Integrity',
+          clientService: 'Client Service'
+        };
+        
+        return {
+          id,
+          name: benefit.customName || legacyNames[id] || id,
+          applicable: benefit.applicable || '',
+          details: benefit.details || '',
+          isDefault: !!legacyNames[id],
+          isEditing: false
+        };
+      });
+    
+    setAllProjectBenefits(loadedBenefits);
+  };
+
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
     // Body className will be set by useEffect
   };
 
@@ -245,6 +473,40 @@ const App: React.FC = () => {
     setCurrentPage('project');
     // Load project description when switching projects
     setProjectDescription(project.description || '');
+    // Load project details
+    setProjectDetails({
+      businessLead: project.businessLead || '',
+      initiator: project.initiator || '',
+      devTeamLead: project.devTeamLead || '',
+      projectStartDate: project.projectStartDate || '',
+      currentProjectStage: project.currentProjectStage || '',
+      currentAiStage: project.currentAiStage || '',
+      targetNextStageDate: project.targetNextStageDate || '',
+      targetCompletionDate: project.targetCompletionDate || '',
+      budget: project.budget || ''
+    });
+    
+    // Load project benefits - check localStorage first for auto-persisted data
+    const localBenefitsData = localStorage.getItem(`benefits_${project.id}`);
+    if (localBenefitsData) {
+      try {
+        const parsed = JSON.parse(localBenefitsData);
+        // Handle both old and new localStorage formats
+        if (Array.isArray(parsed)) {
+          setAllProjectBenefits(parsed);
+        } else {
+          // Old format - convert to new format
+          loadBenefitsFromProject(project);
+        }
+      } catch (error) {
+        console.error('Error parsing localStorage benefits:', error);
+        // Fall back to database data
+        loadBenefitsFromProject(project);
+      }
+    } else {
+      // Load from database
+      loadBenefitsFromProject(project);
+    }
     // Save to localStorage for persistence
     localStorage.setItem('activeProjectId', project.id);
     localStorage.setItem('currentPage', 'project');
@@ -363,6 +625,13 @@ const App: React.FC = () => {
     const debounceTimer = setTimeout(saveDescription, 1000);
     return () => clearTimeout(debounceTimer);
   }, [projectDescription, activeProject]);
+
+  // Auto-persist benefits data to localStorage
+  useEffect(() => {
+    if (!activeProject) return;
+    
+    localStorage.setItem(`benefits_${activeProject.id}`, JSON.stringify(allProjectBenefits));
+  }, [allProjectBenefits, activeProject]);
 
   // Make comment modal functions available globally for CommentIcon components
   // TODO: Refactor to pass as props instead of global assignment for better React patterns
@@ -564,7 +833,17 @@ const App: React.FC = () => {
 
                 {/* Expected Benefits */}
                 <section className="content-section">
-                  <h3>Expected Benefits</h3>
+                  <div className="section-header">
+                    <h3>Expected Benefits</h3>
+                    <button 
+                      className="btn btn-primary btn-sm"
+                      onClick={handleSaveBenefits}
+                      disabled={isSavingBenefits}
+                    >
+                      <Save size={14} />
+                      {isSavingBenefits ? 'Saving...' : 'Save Benefits'}
+                    </button>
+                  </div>
                   <div className="benefits-table-container">
                     <table className="benefits-table">
                       <thead>
@@ -572,74 +851,131 @@ const App: React.FC = () => {
                           <th>Defined Benefit</th>
                           <th>Applicable</th>
                           <th>Details</th>
+                          <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr data-benefit="fteSavings">
-                          <td>FTE Savings</td>
-                          <td>
-                            <select className="benefit-applicable" data-field="benefits.fteSavings.applicable">
-                              <option value="">Select</option>
-                              <option value="yes">Yes</option>
-                              <option value="no">No</option>
-                            </select>
-                          </td>
-                          <td>
-                            <textarea className="benefit-details" data-field="benefits.fteSavings.details" placeholder="Enter details..."></textarea>
-                          </td>
-                        </tr>
-                        <tr data-benefit="costSavings">
-                          <td>Cost Avoidance / Cost Savings</td>
-                          <td>
-                            <select className="benefit-applicable" data-field="benefits.costSavings.applicable">
-                              <option value="">Select</option>
-                              <option value="yes">Yes</option>
-                              <option value="no">No</option>
-                            </select>
-                          </td>
-                          <td>
-                            <textarea className="benefit-details" data-field="benefits.costSavings.details" placeholder="Enter details..."></textarea>
-                          </td>
-                        </tr>
-                        <tr data-benefit="programIntegrity">
-                          <td>Program Integrity</td>
-                          <td>
-                            <select className="benefit-applicable" data-field="benefits.programIntegrity.applicable">
-                              <option value="">Select</option>
-                              <option value="yes">Yes</option>
-                              <option value="no">No</option>
-                            </select>
-                          </td>
-                          <td>
-                            <textarea className="benefit-details" data-field="benefits.programIntegrity.details" placeholder="Enter details..."></textarea>
-                          </td>
-                        </tr>
-                        <tr data-benefit="clientService">
-                          <td>Client Service</td>
-                          <td>
-                            <select className="benefit-applicable" data-field="benefits.clientService.applicable">
-                              <option value="">Select</option>
-                              <option value="yes">Yes</option>
-                              <option value="no">No</option>
-                            </select>
-                          </td>
-                          <td>
-                            <textarea className="benefit-details" data-field="benefits.clientService.details" placeholder="Enter details..."></textarea>
-                          </td>
-                        </tr>
-                        <tr data-benefit="other">
-                          <td>Other</td>
-                          <td>
-                            <select className="benefit-applicable" data-field="benefits.other.applicable">
-                              <option value="">Select</option>
-                              <option value="yes">Yes</option>
-                              <option value="no">No</option>
-                            </select>
-                          </td>
-                          <td>
-                            <textarea className="benefit-details" data-field="benefits.other.details" placeholder="Enter details..."></textarea>
-                          </td>
-                        </tr>
+                        {/* All Benefits - Fully Customizable */}
+                        {allProjectBenefits.map((benefit) => (
+                          <tr key={benefit.id} className={benefit.isDefault ? 'default-benefit' : 'custom-benefit'}>
+                            <td>
+                              {benefit.isEditing ? (
+                                <input 
+                                  type="text"
+                                  className="benefit-name-input"
+                                  defaultValue={benefit.name}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleSaveBenefitName(benefit.id, e.currentTarget.value);
+                                    } else if (e.key === 'Escape') {
+                                      handleCancelEditBenefit(benefit.id);
+                                    }
+                                  }}
+                                  onBlur={(e) => handleSaveBenefitName(benefit.id, e.target.value)}
+                                  autoFocus
+                                />
+                              ) : (
+                                <span className={benefit.isDefault ? 'default-benefit-name' : 'custom-benefit-name'}>
+                                  {benefit.name}
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              <select 
+                                className="benefit-applicable"
+                                value={benefit.applicable}
+                                onChange={(e) => setAllProjectBenefits(prev => prev.map(b => 
+                                  b.id === benefit.id ? { ...b, applicable: e.target.value as any } : b
+                                ))}
+                              >
+                                <option value="">Select</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                              </select>
+                            </td>
+                            <td>
+                              <textarea 
+                                className="benefit-details"
+                                placeholder="Enter details..."
+                                value={benefit.details}
+                                onChange={(e) => setAllProjectBenefits(prev => prev.map(b => 
+                                  b.id === benefit.id ? { ...b, details: e.target.value } : b
+                                ))}
+                              />
+                            </td>
+                            <td>
+                              <div className="benefit-actions">
+                                <button 
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={() => handleEditBenefit(benefit.id)}
+                                  title="Edit benefit name"
+                                  disabled={benefit.isEditing}
+                                >
+                                  <Edit size={12} />
+                                  Edit
+                                </button>
+                                <button 
+                                  className="btn btn-danger btn-sm"
+                                  onClick={() => showBenefitDeleteConfirmation(benefit.id)}
+                                  title="Delete benefit"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        
+                        {/* Add New Benefit Row */}
+                        {showAddBenefit ? (
+                          <tr>
+                            <td>
+                              <input 
+                                type="text"
+                                className="benefit-name-input"
+                                placeholder="Enter benefit name"
+                                value={newBenefitName}
+                                onChange={(e) => setNewBenefitName(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleAddCustomBenefit()}
+                                autoFocus
+                              />
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                              <div className="benefit-actions">
+                                <button 
+                                  className="btn btn-primary btn-sm"
+                                  onClick={handleAddCustomBenefit}
+                                  disabled={!newBenefitName.trim()}
+                                >
+                                  <Check size={12} />
+                                </button>
+                                <button 
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={() => {
+                                    setShowAddBenefit(false);
+                                    setNewBenefitName('');
+                                  }}
+                                >
+                                  <X size={12} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
+                          <tr>
+                            <td colSpan={4}>
+                              <button 
+                                className="btn btn-secondary btn-sm add-benefit-btn"
+                                onClick={() => setShowAddBenefit(true)}
+                              >
+                                <Plus size={14} />
+                                Add Custom Benefit
+                              </button>
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -692,29 +1028,66 @@ const App: React.FC = () => {
                 </section>
               </div>
 
-              {/* Right Sidebar: Project Details - EXACT match to original */}
+              {/* Right Sidebar: Project Details */}
               <div className="project-sidebar">
                 <div className="sidebar-section">
-                  <h4>Project Details</h4>
+                  <div className="sidebar-header">
+                    <h4>Project Details</h4>
+                    <button 
+                      className="btn btn-primary btn-sm"
+                      onClick={handleSaveProjectDetails}
+                      disabled={isSavingDetails}
+                    >
+                      <Save size={14} />
+                      {isSavingDetails ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
                   <div className="detail-group">
                     <label>Business Lead</label>
-                    <input type="text" className="detail-input" placeholder="Enter business lead name" />
+                    <input 
+                      type="text" 
+                      className="detail-input" 
+                      placeholder="Enter business lead name"
+                      value={projectDetails.businessLead}
+                      onChange={(e) => setProjectDetails(prev => ({ ...prev, businessLead: e.target.value }))}
+                    />
                   </div>
                   <div className="detail-group">
                     <label>Initiator</label>
-                    <input type="text" className="detail-input" placeholder="Enter initiator name" />
+                    <input 
+                      type="text" 
+                      className="detail-input" 
+                      placeholder="Enter initiator name"
+                      value={projectDetails.initiator}
+                      onChange={(e) => setProjectDetails(prev => ({ ...prev, initiator: e.target.value }))}
+                    />
                   </div>
                   <div className="detail-group">
                     <label>Dev Team Lead</label>
-                    <input type="text" className="detail-input" placeholder="Enter dev team lead name" />
+                    <input 
+                      type="text" 
+                      className="detail-input" 
+                      placeholder="Enter dev team lead name"
+                      value={projectDetails.devTeamLead}
+                      onChange={(e) => setProjectDetails(prev => ({ ...prev, devTeamLead: e.target.value }))}
+                    />
                   </div>
                   <div className="detail-group">
                     <label>Project Start Date</label>
-                    <input type="date" className="detail-input" />
+                    <input 
+                      type="date" 
+                      className="detail-input"
+                      value={projectDetails.projectStartDate}
+                      onChange={(e) => setProjectDetails(prev => ({ ...prev, projectStartDate: e.target.value }))}
+                    />
                   </div>
                   <div className="detail-group">
                     <label>Current Project Development Stage</label>
-                    <select className="detail-input">
+                    <select 
+                      className="detail-input"
+                      value={projectDetails.currentProjectStage}
+                      onChange={(e) => setProjectDetails(prev => ({ ...prev, currentProjectStage: e.target.value as any }))}
+                    >
                       <option value="">Select stage</option>
                       <option value="prototype">Prototype</option>
                       <option value="poc">Proof of Concept</option>
@@ -723,7 +1096,11 @@ const App: React.FC = () => {
                   </div>
                   <div className="detail-group">
                     <label>Current AI Lifecycle Stage</label>
-                    <select className="detail-input">
+                    <select 
+                      className="detail-input"
+                      value={projectDetails.currentAiStage}
+                      onChange={(e) => setProjectDetails(prev => ({ ...prev, currentAiStage: e.target.value as any }))}
+                    >
                       <option value="">Select stage</option>
                       <option value="planning-design">Planning & Design</option>
                       <option value="data-collection">Data Collection & Processing</option>
@@ -735,15 +1112,31 @@ const App: React.FC = () => {
                   </div>
                   <div className="detail-group">
                     <label>Target Date for Start of Next AI Lifecycle Stage</label>
-                    <input type="date" className="detail-input" />
+                    <input 
+                      type="date" 
+                      className="detail-input"
+                      value={projectDetails.targetNextStageDate}
+                      onChange={(e) => setProjectDetails(prev => ({ ...prev, targetNextStageDate: e.target.value }))}
+                    />
                   </div>
                   <div className="detail-group">
                     <label>Target Project Completion Date</label>
-                    <input type="date" className="detail-input" />
+                    <input 
+                      type="date" 
+                      className="detail-input"
+                      value={projectDetails.targetCompletionDate}
+                      onChange={(e) => setProjectDetails(prev => ({ ...prev, targetCompletionDate: e.target.value }))}
+                    />
                   </div>
                   <div className="detail-group">
                     <label>Budget</label>
-                    <input type="text" className="detail-input" placeholder="Enter budget or TBD" />
+                    <input 
+                      type="text" 
+                      className="detail-input" 
+                      placeholder="Enter budget or TBD"
+                      value={projectDetails.budget}
+                      onChange={(e) => setProjectDetails(prev => ({ ...prev, budget: e.target.value }))}
+                    />
                   </div>
                 </div>
               </div>
@@ -786,6 +1179,13 @@ const App: React.FC = () => {
         onClose={() => setDeleteModal({ isOpen: false, projectId: '', projectName: '' })}
         onConfirm={handleConfirmDelete}
         projectName={deleteModal.projectName}
+      />
+
+      <ConfirmDeleteModal
+        isOpen={deleteBenefitModal.isOpen}
+        onClose={() => setDeleteBenefitModal({ isOpen: false, benefitId: '', benefitName: '' })}
+        onConfirm={handleConfirmBenefitDelete}
+        projectName={`"${deleteBenefitModal.benefitName}" benefit`}
       />
     </div>
   );

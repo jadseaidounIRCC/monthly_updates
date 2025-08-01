@@ -19,13 +19,13 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Update form when project changes
+  // Update form when project changes or modal opens
   React.useEffect(() => {
-    if (project) {
+    if (isOpen && project) {
       setProjectName(project.name);
       setError('');
     }
-  }, [project]);
+  }, [project, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

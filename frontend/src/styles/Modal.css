@@ -15,16 +15,11 @@
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
-  backdrop-filter: blur(4px);
-  /* GPU acceleration hints */
-  will-change: backdrop-filter, opacity;
-  transform: translateZ(0);
-  /* Improve compositing performance */
-  isolation: isolate;
 }
 
 /* Modal Content */
-.modal-content {
+.modal-content,
+.modal-dialog {
   background: var(--background-secondary);
   border-radius: 12px;
   border: 1px solid var(--border-color);
@@ -35,14 +30,64 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  /* Ensure solid background for text readability */
-  backdrop-filter: none;
   position: relative;
-  /* CSS containment for performance */
-  contain: layout style paint;
-  /* GPU acceleration for animations */
-  will-change: transform, opacity;
-  transform: translateZ(0);
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--background-tertiary);
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--background-hover);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.modal-close-btn:hover {
+  background: var(--error-color);
+  color: white;
+}
+
+.modal-close-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Modal Body */
+.modal-body {
+  padding: 2rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Modal Footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--background-tertiary);
 }
 
 /* Comment Modal Specific */
@@ -78,7 +123,6 @@
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 6px;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,7 +171,6 @@
   border-radius: 8px;
   margin-bottom: 1rem;
   background: var(--background-color);
-  transition: all 0.2s ease;
 }
 
 .comment:hover {
@@ -192,7 +235,6 @@
   border-radius: 4px;
   cursor: pointer;
   color: var(--text-muted);
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -253,7 +295,6 @@
   background: var(--background-tertiary);
   color: var(--text-primary);
   font-size: 14px;
-  transition: border-color 0.2s ease;
   font-family: inherit;
 }
 
@@ -433,58 +474,67 @@ textarea.form-control {
   border-bottom: 1px solid #e2e8f0;
 }
 
+[data-theme="light"] .modal-body,
+.theme-light .modal-body {
+  background: #ffffff;
+  color: #1e293b;
+}
+
+[data-theme="light"] .modal-footer,
+.theme-light .modal-footer {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] .form-group label,
+.theme-light .form-group label {
+  color: #1e293b;
+}
+
+[data-theme="light"] .form-control,
+[data-theme="light"] .form-input,
+.theme-light .form-control,
+.theme-light .form-input {
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] .form-control:focus,
+[data-theme="light"] .form-input:focus,
+.theme-light .form-control:focus,
+.theme-light .form-input:focus {
+  border-color: #3b82f6;
+}
+
+/* Fix modal borders in light mode */
+[data-theme="light"] .modal-content,
+[data-theme="light"] .modal-dialog,
+.theme-light .modal-content,
+.theme-light .modal-dialog,
+body.theme-light .modal-content,
+body.theme-light .modal-dialog {
+  border-color: #e2e8f0 !important;
+  background: #ffffff !important;
+}
+
+[data-theme="light"] .modal-header,
+.theme-light .modal-header,
+body.theme-light .modal-header {
+  border-bottom: 1px solid #e2e8f0 !important;
+  border-bottom-color: #e2e8f0 !important;
+  background: #f8fafc !important;
+}
+
+[data-theme="light"] .modal-footer,
+.theme-light .modal-footer,
+body.theme-light .modal-footer {
+  border-top: 1px solid #e2e8f0 !important;
+  border-top-color: #e2e8f0 !important;
+  background: #f8fafc !important;
+}
+
 [data-theme="dark"] .comment:hover {
   box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
 }
 
-/* Animation */
-.modal-overlay {
-  animation: fadeIn 0.2s ease-out;
-}
-
-.modal-content {
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(-10px) translateZ(0);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0) translateZ(0);
-  }
-}
-
-/* Performance optimized animations */
-.modal-overlay {
-  animation: fadeIn 0.15s ease-out;
-  /* Reduce animation time for snappier feel */
-}
-
-.modal-content {
-  animation: slideIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  /* Slightly faster animation for responsiveness */
-}
-
-/* Pre-warm modal styles for instant opening */
-.modal {
-  /* Force layer creation even when hidden */
-  will-change: backdrop-filter, opacity;
-  backface-visibility: hidden;
-}
-
-.modal.show {
-  /* Immediate backdrop filter activation */
-  backdrop-filter: blur(4px);
-}

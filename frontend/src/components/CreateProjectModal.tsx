@@ -51,9 +51,15 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     }
   };
 
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget && !loading) {
+      onClose();
+    }
+  };
+
   return (
-    <div id="project-modal" className="modal show">
-      <div className="modal-content">
+    <div id="project-modal" className="modal show" onClick={handleOverlayClick}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 id="project-modal-title">Create New Project</h3>
           <button className="modal-close" onClick={onClose}>

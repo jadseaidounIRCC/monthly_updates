@@ -45,16 +45,9 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
   const isConfirmValid = confirmText.toLowerCase() === 'confirm';
 
   return (
-    <div className="modal show" style={{ 
-      // Pre-warm GPU layer for smooth opening
-      willChange: 'backdrop-filter, opacity',
-      transform: 'translateZ(0)'
-    }}>
+    <div className="modal show">
       <div className="modal-content" style={{ 
-        maxWidth: '500px',
-        // Pre-warm GPU layer for modal content
-        willChange: 'transform, opacity',
-        transform: 'translateZ(0)'
+        maxWidth: '500px'
       }}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
