@@ -4,6 +4,7 @@ class MonthlyUpdatesApp {
         this.navigation = null;
         this.projectManager = null;
         this.modalManager = null;
+        this.commentManager = null;
         this.init();
     }
 
@@ -22,9 +23,11 @@ class MonthlyUpdatesApp {
             this.modalManager = new ModalManager();
             this.projectManager = new ProjectManager();
             this.navigation = new Navigation();
+            this.commentManager = new CommentManager(this);
 
-            // Make navigation globally accessible
+            // Make components globally accessible
             window.navigation = this.navigation;
+            window.commentManager = this.commentManager;
 
             // Initialize Lucide icons
             if (window.lucide) {
@@ -420,6 +423,18 @@ class MonthlyUpdatesApp {
         } catch (error) {
             return { size: 0, sizeFormatted: '0 bytes' };
         }
+    }
+
+    // Notification system for CommentManager
+    showNotification(message, type = 'info') {
+        // Use existing toast system
+        Helpers.showToast(message, type);
+    }
+
+    // Error message display
+    showErrorMessage(message) {
+        console.error(message);
+        Helpers.showToast(message, 'error');
     }
 }
 

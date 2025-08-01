@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="styles/themes.css">
+    <link rel="stylesheet" href="styles/comments.css">
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body class="theme-dark">
@@ -95,69 +96,69 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
+                                        <tr data-benefit="fteSavings">
                                             <td>FTE Savings</td>
                                             <td>
-                                                <select class="benefit-applicable">
+                                                <select class="benefit-applicable" data-field="benefits.fteSavings.applicable">
                                                     <option value="">Select</option>
                                                     <option value="yes">Yes</option>
                                                     <option value="no">No</option>
                                                 </select>
                                             </td>
                                             <td>
-                                                <textarea class="benefit-details" placeholder="Enter details..."></textarea>
+                                                <textarea class="benefit-details" data-field="benefits.fteSavings.details" placeholder="Enter details..."></textarea>
                                             </td>
                                         </tr>
-                                        <tr>
+                                        <tr data-benefit="costSavings">
                                             <td>Cost Avoidance / Cost Savings</td>
                                             <td>
-                                                <select class="benefit-applicable">
+                                                <select class="benefit-applicable" data-field="benefits.costSavings.applicable">
                                                     <option value="">Select</option>
                                                     <option value="yes">Yes</option>
                                                     <option value="no">No</option>
                                                 </select>
                                             </td>
                                             <td>
-                                                <textarea class="benefit-details" placeholder="Enter details..."></textarea>
+                                                <textarea class="benefit-details" data-field="benefits.costSavings.details" placeholder="Enter details..."></textarea>
                                             </td>
                                         </tr>
-                                        <tr>
+                                        <tr data-benefit="programIntegrity">
                                             <td>Program Integrity</td>
                                             <td>
-                                                <select class="benefit-applicable">
+                                                <select class="benefit-applicable" data-field="benefits.programIntegrity.applicable">
                                                     <option value="">Select</option>
                                                     <option value="yes">Yes</option>
                                                     <option value="no">No</option>
                                                 </select>
                                             </td>
                                             <td>
-                                                <textarea class="benefit-details" placeholder="Enter details..."></textarea>
+                                                <textarea class="benefit-details" data-field="benefits.programIntegrity.details" placeholder="Enter details..."></textarea>
                                             </td>
                                         </tr>
-                                        <tr>
+                                        <tr data-benefit="clientService">
                                             <td>Client Service</td>
                                             <td>
-                                                <select class="benefit-applicable">
+                                                <select class="benefit-applicable" data-field="benefits.clientService.applicable">
                                                     <option value="">Select</option>
                                                     <option value="yes">Yes</option>
                                                     <option value="no">No</option>
                                                 </select>
                                             </td>
                                             <td>
-                                                <textarea class="benefit-details" placeholder="Enter details..."></textarea>
+                                                <textarea class="benefit-details" data-field="benefits.clientService.details" placeholder="Enter details..."></textarea>
                                             </td>
                                         </tr>
-                                        <tr>
+                                        <tr data-benefit="other">
                                             <td>Other</td>
                                             <td>
-                                                <select class="benefit-applicable">
+                                                <select class="benefit-applicable" data-field="benefits.other.applicable">
                                                     <option value="">Select</option>
                                                     <option value="yes">Yes</option>
                                                     <option value="no">No</option>
                                                 </select>
                                             </td>
                                             <td>
-                                                <textarea class="benefit-details" placeholder="Enter details..."></textarea>
+                                                <textarea class="benefit-details" data-field="benefits.other.details" placeholder="Enter details..."></textarea>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -192,7 +193,7 @@
                                     </button>
                                 </div>
                                 <div class="steps-table-container">
-                                    <table class="steps-table">
+                                    <table class="steps-table next-steps-table">
                                         <thead>
                                             <tr>
                                                 <th>ID</th>
@@ -340,6 +341,7 @@
     <script src="js/components/navigation.js"></script>
     <script src="js/components/projects.js"></script>
     <script src="js/components/modals.js"></script>
+    <script src="js/components/comments.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
