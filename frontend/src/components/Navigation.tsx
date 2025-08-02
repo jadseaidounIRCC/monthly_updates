@@ -57,7 +57,7 @@ const Navigation: React.FC<NavigationProps> = ({
       
       <div className="nav-actions">
         <button 
-          className="btn btn-secondary"
+          className="btn btn-create-project"
           onClick={() => setShowCreateModal(true)}
         >
           <Plus size={16} />

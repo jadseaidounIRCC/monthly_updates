@@ -53,6 +53,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget && !loading) {
+      setName('');
       onClose();
     }
   };
@@ -62,7 +63,10 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 id="project-modal-title">Create New Project</h3>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={() => {
+            setName('');
+            onClose();
+          }}>
             <X size={20} />
           </button>
         </div>
@@ -91,14 +95,17 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             <button 
               type="button" 
               className="btn btn-secondary"
-              onClick={onClose}
+              onClick={() => {
+                setName('');
+                onClose();
+              }}
               disabled={loading}
             >
               Cancel
             </button>
             <button 
               type="submit" 
-              className="btn btn-primary"
+              className="btn btn-create-project"
               disabled={loading || !name.trim()}
             >
               {loading ? 'Creating...' : 'Create Project'}

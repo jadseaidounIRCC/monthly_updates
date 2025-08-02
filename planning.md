@@ -42,6 +42,17 @@
 - Modularized code architecture
 - No hardcoded values or mock data
 
+### New Frontend Features (Priority Updates)
+- **Reporting Period Dropdown**: Dark amber/gold dropdown next to project dropdown for filtering by month/year
+- **"All Periods" Option**: See ALL projects across all time periods
+- **Period-specific Filtering**: View projects filtered by specific reporting periods
+- **Enhanced Comments System**: Complete sticky note implementation with threading
+- **Loading States & UX**: Spinners, keyboard shortcuts (Esc, Ctrl+S), tooltips
+- **Data Validation**: Comprehensive form validation and error handling
+- **Auto-save Functionality**: Prevent data loss during editing
+- **Export Features**: PDF reports, CSV data export
+- **Project Search**: Search and filter capabilities for large project lists
+
 ## Technology Stack Decisions
 
 ### Backend Framework
@@ -266,11 +277,45 @@ GET    /api/periods/:id           # Get specific period data
 PUT    /api/periods/:id           # Update period data (if not locked)
 ```
 
-### Phase 2: Comments System Implementation
-**Timeline**: 4-6 days
+### Phase 2: Enhanced Frontend Features (CURRENT FOCUS)
+**Timeline**: 5-7 days
 **Priority**: High
 
-#### Phase 2A: Comments Backend API ✅ **COMPLETED**
+#### Phase 2A: Reporting Period Dropdown Implementation
+**Deliverables**:
+- [ ] Dark amber/gold dropdown component next to project dropdown
+- [ ] "All Periods" option at the top for viewing all projects
+- [ ] Month/year filtering for specific reporting periods
+- [ ] Period-based project filtering logic
+- [ ] Consistent styling with existing project dropdown
+
+**UI Components**:
+- `PeriodDropdown` component (amber/gold styled)
+- Period filtering state management
+- Integration with existing project filtering
+
+#### Phase 2B: Comments System Frontend Integration
+**Deliverables**:
+- [ ] Sticky note icons next to each form field
+- [ ] Comment thread modal component
+- [ ] Real-time comment updates
+- [ ] Comment management (edit/delete permissions)
+
+**UI Components**:
+- `CommentIcon` component (sticky note icon) ✅ **COMPLETED**
+- `CommentModal` component (thread display) ✅ **COMPLETED**
+- `CommentForm` component (add/edit comments)
+- `CommentThread` component (nested comments)
+
+#### Phase 2C: UX Enhancements
+**Deliverables**:
+- [ ] Loading states and spinners throughout app
+- [ ] Keyboard shortcuts (Esc to close modals, Ctrl+S to save)
+- [ ] Tooltips for better user guidance
+- [ ] Form validation with proper error messages
+- [ ] Auto-save functionality to prevent data loss
+
+#### Phase 2D: Comments Backend API (COMPLETED)
 **Deliverables**:
 - [x] Comments CRUD endpoints ✅
 - [x] Thread support for nested comments ✅
@@ -278,28 +323,6 @@ PUT    /api/periods/:id           # Update period data (if not locked)
 - [x] ReportingPeriod model with locking mechanism ✅
 - [x] NextStep model with status tracking ✅
 - [x] Full model associations and database setup ✅
-
-**API Endpoints**:
-```
-GET    /api/comments?project_id=X&period_id=Y&field=Z  # Get field comments
-POST   /api/comments                                    # Create new comment
-PUT    /api/comments/:id                                # Edit comment
-DELETE /api/comments/:id                                # Delete comment
-GET    /api/comments/:id/thread                         # Get comment thread
-```
-
-#### Phase 2B: Comments Frontend Integration
-**Deliverables**:
-- Sticky note icons next to each form field
-- Comment thread modal component
-- Real-time comment updates
-- Comment management (edit/delete permissions)
-
-**UI Components**:
-- `CommentIcon` component (sticky note icon)
-- `CommentModal` component (thread display)
-- `CommentForm` component (add/edit comments)
-- `CommentThread` component (nested comments)
 
 ### Phase 3: Historical Data Preservation
 **Timeline**: 5-7 days
@@ -537,6 +560,37 @@ This phase will:
 **Risk Level**: Low (no modification to existing frontend)
 **Time Estimate**: 1-2 days
 **Dependencies**: MySQL server access and credentials
+
+## Color Scheme Guidelines
+
+### Semantic Badge Color Mapping:
+
+Green (Success):
+  bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30
+  dark:text-green-300 dark:border-green-700
+
+  Red (Error):
+  bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300
+  dark:border-red-700
+
+  Blue (Info):
+  bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300
+  dark:border-blue-700
+
+  Yellow (Warning):
+  bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30
+  dark:text-yellow-300 dark:border-yellow-700
+
+  Purple:
+  bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30
+  dark:text-purple-300 dark:border-purple-700
+
+### Button Color Assignments:
+- **Project dropdown & Create project buttons**: Blue (dark:: colors)
+- **Period reporting dropdown**: Yellow (dark:: colors) - SAME SIZE as projects dropdown
+- **Delete buttons**: Red (dark:: colors)
+- **Save buttons**: Green (dark:: colors)
+- **Edit buttons**: Purple (dark:: colors)
 
 ### User Confirmation Required
 Ready to proceed with Phase 1A implementation? This will establish the backend foundation without modifying any existing frontend functionality.

@@ -717,7 +717,7 @@ const App: React.FC = () => {
           <div className="nav-actions">
             <button 
               id="add-project-btn" 
-              className="btn btn-secondary"
+              className="btn btn-create-project"
               onClick={() => setShowCreateModal(true)}
             >
               <Plus size={16} />
@@ -756,7 +756,7 @@ const App: React.FC = () => {
                 <p>Create your first project to get started with monthly reporting</p>
                 <button 
                   id="create-first-project" 
-                  className="btn btn-primary"
+                  className="btn btn-create-project"
                   onClick={() => setShowCreateModal(true)}
                 >
                   <Plus size={16} />
@@ -836,7 +836,7 @@ const App: React.FC = () => {
                   <div className="section-header">
                     <h3>Expected Benefits</h3>
                     <button 
-                      className="btn btn-primary btn-sm"
+                      className="btn btn-save btn-sm"
                       onClick={handleSaveBenefits}
                       disabled={isSavingBenefits}
                     >
@@ -1002,7 +1002,7 @@ const App: React.FC = () => {
                   <h3>Next Steps</h3>
                   <div className="next-steps-container">
                     <div className="section-header">
-                      <button className="btn btn-primary" id="add-step-btn">
+                      <button className="btn btn-create-project" id="add-step-btn">
                         <Plus size={16} />
                         Add Step
                       </button>
@@ -1034,7 +1034,7 @@ const App: React.FC = () => {
                   <div className="sidebar-header">
                     <h4>Project Details</h4>
                     <button 
-                      className="btn btn-primary btn-sm"
+                      className="btn btn-save btn-sm"
                       onClick={handleSaveProjectDetails}
                       disabled={isSavingDetails}
                     >

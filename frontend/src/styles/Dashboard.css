@@ -263,6 +263,17 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.stage-icon svg {
+  color: white !important;
+  stroke: white !important;
+}
+
+/* Light mode - keep stage icons white */
+body.theme-light .stage-icon svg {
+  color: white !important;
+  stroke: white !important;
+}
+
 .stage-name {
   font-weight: 500;
   color: var(--text-primary);
@@ -438,6 +449,12 @@
   font-weight: 600;
   flex-shrink: 0;
   text-transform: capitalize;
+}
+
+/* Light mode - keep project stage badge icons white */
+body.theme-light .project-stage-badge svg {
+  color: white !important;
+  stroke: white !important;
 }
 
 .project-card-content {

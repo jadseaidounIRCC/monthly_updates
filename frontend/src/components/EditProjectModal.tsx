@@ -109,7 +109,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
             </button>
             <button
               type="submit"
-              className="btn btn-primary"
+              className="btn btn-save"
               disabled={isSubmitting || !projectName.trim()}
             >
               {isSubmitting ? 'Updating...' : 'Update Project'}
