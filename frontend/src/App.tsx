@@ -391,7 +391,7 @@ const App: React.FC = () => {
       setProjects(prev => prev.map(p => p.id === activeProject.id ? updatedProject : p));
       setActiveProject(updatedProject);
       // Show success feedback (you could add a toast notification here)
-      console.log('Project details saved successfully');
+      // Project details saved successfully
     } catch (error) {
       console.error('Error saving project details:', error);
       // Show error feedback (you could add a toast notification here)
@@ -482,7 +482,7 @@ const App: React.FC = () => {
       // Clear localStorage cache after successful save
       localStorage.removeItem(`benefits_${activeProject.id}`);
       
-      console.log('Benefits saved successfully - Fully customizable system active');
+      // Benefits saved successfully - Fully customizable system active
     } catch (error) {
       console.error('Error saving benefits:', error);
     } finally {
@@ -717,8 +717,7 @@ const App: React.FC = () => {
       // Close modal and show success
       setCreatePeriodModal({ isOpen: false, isCreating: false });
       
-      // Optional: Show success message
-      console.log('New reporting period created successfully');
+      // Period creation completed successfully
       
     } catch (error) {
       console.error('Error creating new period:', error);
