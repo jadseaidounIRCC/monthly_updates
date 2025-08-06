@@ -220,12 +220,18 @@ const App: React.FC = () => {
     loadAvailablePeriods();
   }, []);
 
-  // Auto-select active period when not on dashboard and no period is selected
+  // Auto-select periods based on current page
   useEffect(() => {
-    if (currentPage !== 'dashboard' && !selectedPeriod && availablePeriods.length > 0) {
-      const activePeriod = availablePeriods.find(p => p.isActive);
-      if (activePeriod) {
-        setSelectedPeriod(activePeriod.id);
+    if (availablePeriods.length > 0) {
+      if (currentPage === 'dashboard') {
+        // Dashboard defaults to "All Periods" for overview
+        setSelectedPeriod(null);
+      } else if (!selectedPeriod) {
+        // Project pages default to active period if none selected
+        const activePeriod = availablePeriods.find(p => p.isActive);
+        if (activePeriod) {
+          setSelectedPeriod(activePeriod.id);
+        }
       }
     }
   }, [currentPage, selectedPeriod, availablePeriods]);
