@@ -9,15 +9,12 @@ const defineReportingPeriodModel = (sequelize) => {
       allowNull: false,
       comment: 'Unique reporting period identifier'
     },
-    projectId: {
-      type: DataTypes.STRING(36),
+    isActive: {
+      type: DataTypes.BOOLEAN,
       allowNull: false,
-      field: 'project_id',
-      references: {
-        model: 'projects',
-        key: 'id'
-      },
-      comment: 'Reference to the project'
+      defaultValue: false,
+      field: 'is_active',
+      comment: 'Whether this is the current active period (only one can be active)'
     },
     periodStart: {
       type: DataTypes.DATEONLY,

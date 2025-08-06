@@ -7,6 +7,7 @@ const defineReportingPeriodModel = require('./ReportingPeriod');
 const defineNextStepModel = require('./NextStep');
 const defineCommentModel = require('./Comment');
 const defineUserModel = require('./User');
+const defineProjectDataModel = require('./ProjectData');
 
 // Models will be stored here after initialization
 let models = {};
@@ -22,15 +23,14 @@ const initializeModels = async () => {
     models.NextStep = defineNextStepModel(sequelizeInstance);
     models.Comment = defineCommentModel(sequelizeInstance);
     models.User = defineUserModel(sequelizeInstance);
+    models.ProjectData = defineProjectDataModel(sequelizeInstance);
     
     // Setup associations
     setupAssociations();
     
-    // Sync models with database (be careful in production)
-    if (process.env.NODE_ENV === 'development') {
-      await sequelizeInstance.sync({ alter: true });
-      logger.info('Database models synchronized (development mode)');
-    }
+    // Skip auto-sync since we have proper migration scripts
+    // Models are already synced via migrations
+    logger.info('Models initialized (using migrations, not auto-sync)');
     
     logger.info('Models initialized successfully');
     return true;
@@ -42,16 +42,28 @@ const initializeModels = async () => {
 
 // Define associations
 const setupAssociations = () => {
-  // Project -> ReportingPeriods (1:many)
-  models.Project.hasMany(models.ReportingPeriod, {
+  // Project -> ProjectData (1:many) - period-specific project data
+  models.Project.hasMany(models.ProjectData, {
     foreignKey: 'project_id',
-    as: 'reportingPeriods',
+    as: 'projectData',
     onDelete: 'CASCADE'
   });
   
-  models.ReportingPeriod.belongsTo(models.Project, {
+  models.ProjectData.belongsTo(models.Project, {
     foreignKey: 'project_id',
     as: 'project'
+  });
+
+  // ReportingPeriod -> ProjectData (1:many) - all projects in this period
+  models.ReportingPeriod.hasMany(models.ProjectData, {
+    foreignKey: 'period_id',
+    as: 'projectData',
+    onDelete: 'CASCADE'
+  });
+  
+  models.ProjectData.belongsTo(models.ReportingPeriod, {
+    foreignKey: 'period_id',
+    as: 'reportingPeriod'
   });
 
   // Project -> NextSteps (1:many)
@@ -263,6 +275,7 @@ module.exports = {
   get NextStep() { return models.NextStep; },
   get Comment() { return models.Comment; },
   get User() { return models.User; },
+  get ProjectData() { return models.ProjectData; },
   
   // Functions
   initializeModels,

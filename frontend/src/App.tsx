@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Moon, Sun, Plus, Edit, Trash2, BarChart3, Save, X, Check } from 'lucide-react';
+import { Moon, Sun, Plus, Edit, Trash2, BarChart3, Save, X, Check, CalendarPlus, Loader, AlertTriangle } from 'lucide-react';
 import { Project, Comment } from './types';
 import ApiService from './services/ApiService';
 import CommentModal from './components/CommentModal';
@@ -7,11 +7,16 @@ import CreateProjectModal from './components/CreateProjectModal';
 import EditProjectModal from './components/EditProjectModal';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal';
 import Dashboard from './components/Dashboard';
-import { Helpers } from './utils/helpers';
 import './styles/Original.css';
 import './styles/CommentIcons.css';
 import './styles/Modal.css';
 import './styles/Dashboard.css';
+
+// Helper function to parse date strings correctly without timezone issues
+const parseLocalDate = (dateString: string): Date => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day); // month is 0-indexed in JS Date
+};
 
 const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -25,6 +30,17 @@ const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<'welcome' | 'project' | 'dashboard'>('welcome');
   const [projectDescription, setProjectDescription] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  
+  // Period dropdown state
+  const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null);
+  const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false);
+  const [availablePeriods, setAvailablePeriods] = useState<Array<{
+    id: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+    isActive: boolean;
+  }>>([]);
   
   // Project Details State
   const [projectDetails, setProjectDetails] = useState({
@@ -64,6 +80,17 @@ const App: React.FC = () => {
     benefitId: string;
     benefitName: string;
   }>({ isOpen: false, benefitId: '', benefitName: '' });
+  
+  const [createPeriodModal, setCreatePeriodModal] = useState<{
+    isOpen: boolean;
+    isCreating: boolean;
+  }>({ isOpen: false, isCreating: false });
+  
+  const [warningModal, setWarningModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({ isOpen: false, title: '', message: '' });
   
   // Comment Modal State
   const [commentModal, setCommentModal] = useState<{
@@ -155,14 +182,62 @@ const App: React.FC = () => {
       }
     };
 
+    const loadAvailablePeriods = async () => {
+      try {
+        // Try to load from backend API first
+        try {
+          const periodsData = await ApiService.getReportingPeriods();
+          if (Array.isArray(periodsData) && periodsData.length > 0) {
+            // Transform backend data to match our format
+            const transformedPeriods = periodsData.map(period => ({
+              id: period.id,
+              name: period.name,
+              startDate: period.startDate,
+              endDate: period.endDate,
+              isActive: period.isActive || false
+            }));
+            setAvailablePeriods(transformedPeriods);
+            
+            // Set active period as default selected period if none is selected
+            if (!selectedPeriod) {
+              const activePeriod = transformedPeriods.find(p => p.isActive);
+              if (activePeriod) {
+                setSelectedPeriod(activePeriod.id);
+              }
+            }
+            return;
+          }
+        } catch (apiError) {
+          console.error('Backend API not available:', apiError);
+          setAvailablePeriods([]); // Set empty array if API fails
+        }
+      } catch (error) {
+        console.error('Error loading periods:', error);
+      }
+    };
+
     loadProjects();
+    loadAvailablePeriods();
   }, []);
 
-  // Close dropdown when clicking outside
+  // Auto-select active period when not on dashboard and no period is selected
+  useEffect(() => {
+    if (currentPage !== 'dashboard' && !selectedPeriod && availablePeriods.length > 0) {
+      const activePeriod = availablePeriods.find(p => p.isActive);
+      if (activePeriod) {
+        setSelectedPeriod(activePeriod.id);
+      }
+    }
+  }, [currentPage, selectedPeriod, availablePeriods]);
+
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (!(e.target as Element).closest('.projects-dropdown')) {
         setDropdownOpen(false);
+      }
+      if (!(e.target as Element).closest('.periods-dropdown')) {
+        setPeriodDropdownOpen(false);
       }
     };
 
@@ -232,7 +307,7 @@ const App: React.FC = () => {
     }, 150); // Debounce by 150ms to avoid excessive calls
     
     return () => clearTimeout(timer);
-  }, [projects, activeProject, dropdownOpen]);
+  }, [projects, activeProject, dropdownOpen, periodDropdownOpen]);
 
 
 
@@ -593,6 +668,65 @@ const App: React.FC = () => {
     }
   };
 
+  const handleCreateNewPeriod = () => {
+    // Check if we're still in the current period
+    const activePeriod = availablePeriods.find(p => p.isActive);
+    if (activePeriod) {
+      const today = new Date();
+      const periodEnd = parseLocalDate(activePeriod.endDate);
+      
+      if (today <= periodEnd) {
+        // Still in current period, show warning instead
+        const daysRemaining = Math.ceil((periodEnd.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const nextPeriodEnd = new Date(periodEnd);
+        nextPeriodEnd.setMonth(nextPeriodEnd.getMonth() + 1);
+        nextPeriodEnd.setDate(15);
+        const nextPeriodName = nextPeriodEnd.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        
+        setWarningModal({
+          isOpen: true,
+          title: 'Cannot Create New Period Yet',
+          message: `You are still in the current period (${activePeriod.name}). Please wait ${daysRemaining} more day${daysRemaining !== 1 ? 's' : ''} until ${periodEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} to create the ${nextPeriodName} period.`
+        });
+        return;
+      }
+    }
+    
+    setCreatePeriodModal({ isOpen: true, isCreating: false });
+  };
+
+  const confirmCreatePeriod = async () => {
+    setCreatePeriodModal(prev => ({ ...prev, isCreating: true }));
+    
+    try {
+      await ApiService.createNewPeriod();
+      
+      // Refresh periods data
+      const periodsData = await ApiService.getReportingPeriods();
+      if (Array.isArray(periodsData) && periodsData.length > 0) {
+        const transformedPeriods = periodsData.map(period => ({
+          id: period.id,
+          name: period.name,
+          startDate: period.startDate,
+          endDate: period.endDate,
+          isActive: period.isActive || false
+        }));
+        setAvailablePeriods(transformedPeriods);
+      }
+      
+      // Close modal and show success
+      setCreatePeriodModal({ isOpen: false, isCreating: false });
+      
+      // Optional: Show success message
+      console.log('New reporting period created successfully');
+      
+    } catch (error) {
+      console.error('Error creating new period:', error);
+      // Keep modal open on error
+      setCreatePeriodModal(prev => ({ ...prev, isCreating: false }));
+    }
+  };
+
   const handleAddReply = async (parentId: string, replyData: Omit<Comment, 'id' | 'createdAt' | 'updatedAt' | 'replies'>) => {
     try {
       const newReply = await ApiService.createComment({ ...replyData, parentId });
@@ -652,6 +786,7 @@ const App: React.FC = () => {
                 <button className={`projects-dropdown-toggle ${activeProject || currentPage === 'dashboard' ? 'active' : ''}`} id="projects-dropdown-toggle"
                   onClick={(e) => {
                     e.stopPropagation();
+                    setPeriodDropdownOpen(false); // Close period dropdown
                     setDropdownOpen(!dropdownOpen);
                   }}>
                   <i data-lucide={currentPage === 'dashboard' ? 'bar-chart-3' : 'folder'}></i>
@@ -685,7 +820,6 @@ const App: React.FC = () => {
                   {projects.length > 0 && <div className="dropdown-header">Projects ({projects.length})</div>}
                   {projects.length === 0 && <div className="dropdown-header no-projects">No projects yet</div>}
                   {projects.map(project => {
-                    const period = Helpers.calculateReportingPeriod();
                     return (
                       <div key={project.id} className={`dropdown-project-item ${project.id === activeProject?.id ? 'active' : ''}`} 
                         data-project-id={project.id}>
@@ -698,7 +832,17 @@ const App: React.FC = () => {
                           <i data-lucide="folder"></i>
                           <div style={{flex: 1}}>
                             <div className="project-name">{project.name}</div>
-                            <div className="project-period">{period.periodString}</div>
+                            <div className="project-period">{(() => {
+                              if (selectedPeriod) {
+                                const period = availablePeriods.find(p => p.id === selectedPeriod);
+                                if (period) {
+                                  const startDate = parseLocalDate(period.startDate);
+                                  const endDate = parseLocalDate(period.endDate);
+                                  return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+                                }
+                              }
+                              return 'No period selected';
+                            })()}</div>
                           </div>
                         </button>
                         <button className="delete-btn" data-project-id={project.id} title="Delete project"
@@ -713,8 +857,79 @@ const App: React.FC = () => {
                   })}
                 </div>
               </div>
+            
+            {/* Periods dropdown - Identical to projects dropdown but with yellow styling */}
+            <div className="periods-dropdown">
+                <button className={`periods-dropdown-toggle ${selectedPeriod ? 'active' : ''}`} id="periods-dropdown-toggle"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDropdownOpen(false); // Close projects dropdown
+                    setPeriodDropdownOpen(!periodDropdownOpen);
+                  }}>
+                  <i data-lucide="calendar"></i>
+                  <span className="period-name">
+                    {selectedPeriod ? availablePeriods.find(p => p.id === selectedPeriod)?.name || 'Select Period' : 'All Periods'}
+                  </span>
+                  <i data-lucide="chevron-down" style={{width: '1rem', height: '1rem'}}></i>
+                </button>
+                <div className={`periods-dropdown-menu ${periodDropdownOpen ? 'show' : ''}`} id="periods-dropdown-menu">
+                  {/* All Periods Option - Only show on dashboard */}
+                  {currentPage === 'dashboard' && (
+                    <>
+                      <div className={`dropdown-period-item ${!selectedPeriod ? 'active' : ''}`}>
+                        <button className="period-item-content all-periods-item" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPeriod(null);
+                            setPeriodDropdownOpen(false);
+                          }}>
+                          <i data-lucide="calendar-days"></i>
+                          <div style={{flex: 1}}>
+                            <div className="period-name">All Periods</div>
+                            <div className="period-range">View all reporting periods</div>
+                          </div>
+                        </button>
+                      </div>
+                      <div className="dropdown-divider"></div>
+                    </>
+                  )}
+                  {availablePeriods.length > 0 && <div className="dropdown-header">Reporting Periods ({availablePeriods.length})</div>}
+                  {availablePeriods.length === 0 && <div className="dropdown-header no-periods">No periods available</div>}
+                  {availablePeriods.map(period => {
+                    return (
+                      <div key={period.id} className={`dropdown-period-item ${period.id === selectedPeriod ? 'active' : ''}`} 
+                        data-period-id={period.id}>
+                        <button className="period-item-content" data-period-id={period.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPeriod(period.id);
+                            setPeriodDropdownOpen(false);
+                          }}>
+                          <i data-lucide="calendar"></i>
+                          <div style={{flex: 1}}>
+                            <div className="period-name">{period.name}</div>
+                            <div className="period-range">
+                              {parseLocalDate(period.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {parseLocalDate(period.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </div>
+                          </div>
+                          {period.isActive && <div className="period-status">Current</div>}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
           </div>
           <div className="nav-actions">
+            <button 
+              id="create-period-btn" 
+              className="btn btn-create-period"
+              onClick={handleCreateNewPeriod}
+              title="Create New Reporting Period"
+            >
+              <i data-lucide="calendar-plus" style={{width: '16px', height: '16px'}}></i>
+              <span>New Period</span>
+            </button>
             <button 
               id="add-project-btn" 
               className="btn btn-create-project"
@@ -743,6 +958,8 @@ const App: React.FC = () => {
             <Dashboard 
               projects={projects} 
               onProjectSelect={handleProjectSelectFromDashboard}
+              selectedPeriod={selectedPeriod}
+              availablePeriods={availablePeriods}
             />
           </div>
         )}
@@ -776,12 +993,24 @@ const App: React.FC = () => {
                 <div className="reporting-period">
                   <span className="period-label">Reporting Period:</span>
                   <span className="period-dates">{(() => {
-                    const period = Helpers.calculateReportingPeriod();
-                    return `${period.periodString}, ${period.startDate.getFullYear()}`;
+                    if (selectedPeriod) {
+                      const period = availablePeriods.find(p => p.id === selectedPeriod);
+                      if (period) {
+                        const startDate = parseLocalDate(period.startDate);
+                        const endDate = parseLocalDate(period.endDate);
+                        return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                      }
+                    }
+                    return 'No period selected';
                   })()}</span>
                   <span className="period-month">{(() => {
-                    const period = Helpers.calculateReportingPeriod();
-                    return period.periodName.split(' ')[0]; // Just the month name
+                    if (selectedPeriod) {
+                      const period = availablePeriods.find(p => p.id === selectedPeriod);
+                      if (period) {
+                        return period.name.split(' ')[0].toUpperCase(); // Just the month name
+                      }
+                    }
+                    return '';
                   })()}</span>
                 </div>
               </div>
@@ -1187,6 +1416,131 @@ const App: React.FC = () => {
         onConfirm={handleConfirmBenefitDelete}
         projectName={`"${deleteBenefitModal.benefitName}" benefit`}
       />
+
+      {/* Create Period Confirmation Modal */}
+      {createPeriodModal.isOpen && (
+        <div className="modal-overlay" onClick={() => setCreatePeriodModal({ isOpen: false, isCreating: false })}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Create New Reporting Period</h3>
+              <button 
+                className="modal-close-btn" 
+                onClick={() => setCreatePeriodModal({ isOpen: false, isCreating: false })}
+                disabled={createPeriodModal.isCreating}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="period-creation-info">
+                <div className="current-period-info">
+                  <strong>Current Period:</strong> {(() => {
+                    let activePeriod = availablePeriods.find(p => p.isActive);
+                    
+                    // Fallback to first period if no active period found
+                    if (!activePeriod && availablePeriods.length > 0) {
+                      activePeriod = availablePeriods[0];
+                    }
+                    
+                    if (activePeriod) {
+                      const startDate = parseLocalDate(activePeriod.startDate);
+                      const endDate = parseLocalDate(activePeriod.endDate);
+                      return `${activePeriod.name} (${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})`;
+                    }
+                    return `No periods available`;
+                  })()}
+                </div>
+                <div className="next-period-info">
+                  <strong>New Period:</strong> {(() => {
+                    let activePeriod = availablePeriods.find(p => p.isActive);
+                    
+                    // Fallback to first period if no active period found
+                    if (!activePeriod && availablePeriods.length > 0) {
+                      activePeriod = availablePeriods[0];
+                    }
+                    
+                    if (activePeriod) {
+                      const currentEnd = parseLocalDate(activePeriod.endDate);
+                      const nextStart = new Date(currentEnd);
+                      nextStart.setDate(nextStart.getDate() + 1); // Day after current period ends
+                      const nextEnd = new Date(nextStart);
+                      nextEnd.setMonth(nextEnd.getMonth() + 1);
+                      nextEnd.setDate(15); // Always end on 15th of next month
+                      
+                      // Period name should be based on the end month (the month it covers most of)
+                      const nextPeriodName = nextEnd.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                      return `${nextPeriodName} (${nextStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${nextEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})`;
+                    }
+                    return 'No periods available';
+                  })()}
+                </div>
+              </div>
+              <p>
+                This will create the new reporting period and copy all current projects to it.
+                The current period will be locked as read-only.
+              </p>
+              <p><strong>Are you sure you want to continue?</strong></p>
+            </div>
+            <div className="modal-footer modal-footer-centered">
+              <button 
+                className="btn btn-danger" 
+                onClick={() => setCreatePeriodModal({ isOpen: false, isCreating: false })}
+                disabled={createPeriodModal.isCreating}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn btn-create-period" 
+                onClick={confirmCreatePeriod}
+                disabled={createPeriodModal.isCreating}
+              >
+                {createPeriodModal.isCreating ? (
+                  <>
+                    <Loader size={16} className="animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <CalendarPlus size={16} />
+                    Create New Period
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Warning Modal */}
+      {warningModal.isOpen && (
+        <div className="modal-overlay" onClick={() => setWarningModal({ isOpen: false, title: '', message: '' })}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="warning-modal-title">
+                <AlertTriangle size={20} className="warning-icon" />
+                {warningModal.title}
+              </h3>
+              <button 
+                className="modal-close-btn" 
+                onClick={() => setWarningModal({ isOpen: false, title: '', message: '' })}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="warning-message">{warningModal.message}</p>
+            </div>
+            <div className="modal-footer modal-footer-centered">
+              <button 
+                className="btn btn-warning" 
+                onClick={() => setWarningModal({ isOpen: false, title: '', message: '' })}
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -13,23 +13,69 @@ import {
   Zap
 } from 'lucide-react';
 import { Project } from '../types';
-import { Helpers } from '../utils/helpers';
+
+// Helper function to parse date strings correctly without timezone issues
+const parseLocalDate = (dateString: string): Date => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day); // month is 0-indexed in JS Date
+};
 
 interface DashboardProps {
   projects: Project[];
   onProjectSelect: (project: Project) => void;
+  selectedPeriod: string | null;
+  availablePeriods: Array<{
+    id: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+    isActive: boolean;
+  }>;
 }
 
 type ViewMode = 'overview' | 'benefits' | 'timeline' | 'team';
 
-const Dashboard: React.FC<DashboardProps> = ({ projects, onProjectSelect }) => {
+const Dashboard: React.FC<DashboardProps> = ({ projects, onProjectSelect, selectedPeriod, availablePeriods }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('overview');
   const [filterStage, setFilterStage] = useState<string>('all');
 
   // Calculate dashboard metrics
   const metrics = useMemo(() => {
     const totalProjects = projects.length;
-    const currentPeriod = Helpers.calculateReportingPeriod();
+    
+    // Get current period info from real data instead of dummy
+    const getCurrentPeriodInfo = () => {
+      if (selectedPeriod) {
+        const period = availablePeriods.find(p => p.id === selectedPeriod);
+        if (period) {
+          const startDate = parseLocalDate(period.startDate);
+          const endDate = parseLocalDate(period.endDate);
+          return {
+            periodName: period.name,
+            periodString: `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+            startDate,
+            endDate
+          };
+        }
+      }
+      
+      // Fallback to active period if no period selected (for "All Periods" view)
+      const activePeriod = availablePeriods.find(p => p.isActive);
+      if (activePeriod) {
+        const startDate = parseLocalDate(activePeriod.startDate);
+        const endDate = parseLocalDate(activePeriod.endDate);
+        return {
+          periodName: activePeriod.name,
+          periodString: `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+          startDate,
+          endDate
+        };
+      }
+      
+      return null;
+    };
+    
+    const currentPeriod = getCurrentPeriodInfo();
     
     // Project stage distribution
     const stageDistribution = projects.reduce((acc, project) => {
@@ -73,7 +119,7 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, onProjectSelect }) => {
       teamLeads,
       totalSteps
     };
-  }, [projects]);
+  }, [projects, selectedPeriod, availablePeriods]);
 
   const filteredProjects = useMemo(() => {
     if (filterStage === 'all') return projects;
@@ -108,8 +154,8 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, onProjectSelect }) => {
           <h2 className="dashboard-title">Project Overview Dashboard</h2>
           <div className="dashboard-period">
             <span className="period-label">Reporting Period:</span>
-            <span className="period-dates">{metrics.currentPeriod.periodString}, {metrics.currentPeriod.startDate.getFullYear()}</span>
-            <span className="period-month">{metrics.currentPeriod.periodName.split(' ')[0]}</span>
+            <span className="period-dates">{metrics.currentPeriod ? `${metrics.currentPeriod.periodString}, ${metrics.currentPeriod.startDate.getFullYear()}` : 'No period selected'}</span>
+            <span className="period-month">{metrics.currentPeriod ? metrics.currentPeriod.periodName.split(' ')[0] : ''}</span>
           </div>
         </div>
         

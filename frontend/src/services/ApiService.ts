@@ -63,7 +63,7 @@ class ApiService {
   // Reporting Periods
   static async getReportingPeriods(): Promise<ReportingPeriod[]> {
     const response = await api.get('/periods');
-    return response.data;
+    return response.data.periods || [];
   }
 
   static async getCurrentPeriod(projectId: string): Promise<ReportingPeriod> {
@@ -73,6 +73,11 @@ class ApiService {
 
   static async createReportingPeriod(periodData: Omit<ReportingPeriod, 'id' | 'createdAt' | 'updatedAt'>): Promise<ReportingPeriod> {
     const response = await api.post('/periods', periodData);
+    return response.data;
+  }
+
+  static async createNewPeriod(): Promise<{ success: boolean; message: string; period?: ReportingPeriod }> {
+    const response = await api.post('/periods/create-next');
     return response.data;
   }
 
