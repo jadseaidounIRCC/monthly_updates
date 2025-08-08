@@ -12,7 +12,8 @@
     "migrate:undo": "npx sequelize-cli db:migrate:undo",
     "seed": "npx sequelize-cli db:seed:all",
     "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix"
+    "lint:fix": "eslint src/ --fix",
+    "install:windows": "node install-windows.js"
   },
   "dependencies": {
     "express": "^4.18.2",
