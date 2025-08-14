@@ -20,11 +20,18 @@ const CommentIcon: React.FC<CommentIconProps> = ({
   const [loading, setLoading] = useState(false);
 
   const loadCommentInfo = useCallback(async () => {
+    // Don't load if we don't have required IDs
+    if (!projectId || !periodId || !fieldRef) {
+      setCommentCount(0);
+      setHasUnresolved(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       const comments = await ApiService.getComments(projectId, periodId, fieldRef);
       setCommentCount(comments.length);
-      setHasUnresolved(comments.some(comment => !comment.isResolved));
+      setHasUnresolved(comments.some((comment: any) => !comment.isResolved));
     } catch (error) {
       console.error('Error loading comment info:', error);
       setCommentCount(0);
@@ -44,6 +51,10 @@ const CommentIcon: React.FC<CommentIconProps> = ({
     // Use the global function attached to window
     if ((window as any).openCommentModal) {
       (window as any).openCommentModal(fieldRef, fieldDisplayName, projectId, periodId);
+      // Refresh comment count after modal closes
+      setTimeout(() => loadCommentInfo(), 500);
+    } else {
+      console.warn('Comment modal function not available yet');
     }
   };
 

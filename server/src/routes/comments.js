@@ -8,12 +8,13 @@ const router = express.Router();
 // Validation schemas
 const commentValidation = {
   create: Joi.object({
-    projectId: Joi.string().length(36).required(),
-    periodId: Joi.string().length(36).required(),
+    projectId: Joi.string().min(1).max(50).required(), // Allow flexible ID format
+    periodId: Joi.string().min(1).max(50).required(), // Allow flexible ID format
     fieldReference: Joi.string().max(100).required(),
-    parentCommentId: Joi.string().length(36).optional().allow(null),
+    parentCommentId: Joi.string().min(1).max(50).optional().allow(null), // Allow flexible ID format
     authorName: Joi.string().max(255).required(),
     content: Joi.string().required(),
+    isResolved: Joi.boolean().optional(), // Allow this field from frontend
     replies: Joi.array().items(Joi.object({
       authorName: Joi.string().max(255).required(),
       content: Joi.string().required()

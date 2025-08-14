@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Moon, Sun, Plus, Edit, Trash2, BarChart3, Save, X, Check, CalendarPlus, Loader, AlertTriangle } from 'lucide-react';
 import { Project, Comment } from './types';
 import ApiService from './services/ApiService';
+import CommentIcon from './components/CommentIcon';
 import CommentModal from './components/CommentModal';
 import CreateProjectModal from './components/CreateProjectModal';
 import EditProjectModal from './components/EditProjectModal';
@@ -607,10 +608,19 @@ const App: React.FC = () => {
         fieldDisplayName,
         projectId,
         periodId,
-        comments
+        comments: comments || []
       });
     } catch (error) {
       console.error('Error loading comments:', error);
+      // Still open the modal even if loading fails
+      setCommentModal({
+        isOpen: true,
+        fieldRef,
+        fieldDisplayName,
+        projectId,
+        periodId,
+        comments: []
+      });
     }
   };
 
@@ -734,7 +744,10 @@ const App: React.FC = () => {
 
   const handleAddReply = async (parentId: string, replyData: Omit<Comment, 'id' | 'createdAt' | 'updatedAt' | 'replies'>) => {
     try {
-      const newReply = await ApiService.createComment({ ...replyData, parentId });
+      const newReply = await ApiService.addReply(parentId, {
+        authorName: replyData.authorName,
+        content: replyData.content
+      });
       setCommentModal(prev => ({
         ...prev,
         comments: prev.comments.map(comment => 
@@ -774,7 +787,12 @@ const App: React.FC = () => {
 
   // Make comment modal functions available globally for CommentIcon components
   // TODO: Refactor to pass as props instead of global assignment for better React patterns
-  (window as any).openCommentModal = openCommentModal;
+  useEffect(() => {
+    (window as any).openCommentModal = openCommentModal;
+    return () => {
+      delete (window as any).openCommentModal;
+    };
+  });
 
 
   return (
@@ -1044,7 +1062,17 @@ const App: React.FC = () => {
               <div className="project-main">
                 {/* Project Description */}
                 <section className="content-section">
-                  <h3>Project Description</h3>
+                  <div className="section-header">
+                    <h3>Project Description</h3>
+                    {activeProject && selectedPeriod && (
+                      <CommentIcon
+                        fieldRef="description"
+                        projectId={activeProject.id}
+                        periodId={selectedPeriod}
+                        displayName="Project Description"
+                      />
+                    )}
+                  </div>
                   <textarea 
                     className="description-content"
                     value={projectDescription}
@@ -1217,7 +1245,17 @@ const App: React.FC = () => {
 
                 {/* Key Risks/Issues */}
                 <section className="content-section">
-                  <h3>Key Risks/Issues</h3>
+                  <div className="section-header">
+                    <h3>Key Risks/Issues</h3>
+                    {activeProject && selectedPeriod && (
+                      <CommentIcon
+                        fieldRef="keyRisks"
+                        projectId={activeProject.id}
+                        periodId={selectedPeriod}
+                        displayName="Key Risks/Issues"
+                      />
+                    )}
+                  </div>
                   <div className="risks-editor">
                     <textarea className="risks-content" placeholder="• Enter first risk or issue&#10;• Add additional items on new lines&#10;• Each line will become a bullet point"></textarea>
                   </div>
@@ -1225,7 +1263,17 @@ const App: React.FC = () => {
 
                 {/* Key Updates */}
                 <section className="content-section">
-                  <h3>Key Updates</h3>
+                  <div className="section-header">
+                    <h3>Key Updates</h3>
+                    {activeProject && selectedPeriod && (
+                      <CommentIcon
+                        fieldRef="keyUpdates"
+                        projectId={activeProject.id}
+                        periodId={selectedPeriod}
+                        displayName="Key Updates"
+                      />
+                    )}
+                  </div>
                   <div className="updates-editor">
                     <textarea className="updates-content" placeholder="• Enter first key update&#10;• Add additional updates on new lines&#10;• Each line will become a bullet point"></textarea>
                   </div>
@@ -1233,7 +1281,17 @@ const App: React.FC = () => {
 
                 {/* Next Steps */}
                 <section className="content-section">
-                  <h3>Next Steps</h3>
+                  <div className="section-header">
+                    <h3>Next Steps</h3>
+                    {activeProject && selectedPeriod && (
+                      <CommentIcon
+                        fieldRef="nextSteps"
+                        projectId={activeProject.id}
+                        periodId={selectedPeriod}
+                        displayName="Next Steps"
+                      />
+                    )}
+                  </div>
                   <div className="next-steps-container">
                     <div className="section-header">
                       <button className="btn btn-create-project" id="add-step-btn">
@@ -1277,7 +1335,17 @@ const App: React.FC = () => {
                     </button>
                   </div>
                   <div className="detail-group">
-                    <label>Business Lead</label>
+                    <div className="detail-label-row">
+                      <label>Business Lead</label>
+                      {activeProject && selectedPeriod && (
+                        <CommentIcon
+                          fieldRef="businessLead"
+                          projectId={activeProject.id}
+                          periodId={selectedPeriod}
+                          displayName="Business Lead"
+                        />
+                      )}
+                    </div>
                     <input 
                       type="text" 
                       className="detail-input" 
@@ -1287,7 +1355,17 @@ const App: React.FC = () => {
                     />
                   </div>
                   <div className="detail-group">
-                    <label>Initiator</label>
+                    <div className="detail-label-row">
+                      <label>Initiator</label>
+                      {activeProject && selectedPeriod && (
+                        <CommentIcon
+                          fieldRef="initiator"
+                          projectId={activeProject.id}
+                          periodId={selectedPeriod}
+                          displayName="Initiator"
+                        />
+                      )}
+                    </div>
                     <input 
                       type="text" 
                       className="detail-input" 
@@ -1297,7 +1375,17 @@ const App: React.FC = () => {
                     />
                   </div>
                   <div className="detail-group">
-                    <label>Dev Team Lead</label>
+                    <div className="detail-label-row">
+                      <label>Dev Team Lead</label>
+                      {activeProject && selectedPeriod && (
+                        <CommentIcon
+                          fieldRef="devTeamLead"
+                          projectId={activeProject.id}
+                          periodId={selectedPeriod}
+                          displayName="Dev Team Lead"
+                        />
+                      )}
+                    </div>
                     <input 
                       type="text" 
                       className="detail-input" 
@@ -1307,7 +1395,17 @@ const App: React.FC = () => {
                     />
                   </div>
                   <div className="detail-group">
-                    <label>Project Start Date</label>
+                    <div className="detail-label-row">
+                      <label>Project Start Date</label>
+                      {activeProject && selectedPeriod && (
+                        <CommentIcon
+                          fieldRef="projectStartDate"
+                          projectId={activeProject.id}
+                          periodId={selectedPeriod}
+                          displayName="Project Start Date"
+                        />
+                      )}
+                    </div>
                     <input 
                       type="date" 
                       className="detail-input"
@@ -1316,7 +1414,17 @@ const App: React.FC = () => {
                     />
                   </div>
                   <div className="detail-group">
-                    <label>Current Project Development Stage</label>
+                    <div className="detail-label-row">
+                      <label>Current Project Development Stage</label>
+                      {activeProject && selectedPeriod && (
+                        <CommentIcon
+                          fieldRef="currentProjectStage"
+                          projectId={activeProject.id}
+                          periodId={selectedPeriod}
+                          displayName="Current Project Stage"
+                        />
+                      )}
+                    </div>
                     <select 
                       className="detail-input"
                       value={projectDetails.currentProjectStage}
@@ -1329,7 +1437,17 @@ const App: React.FC = () => {
                     </select>
                   </div>
                   <div className="detail-group">
-                    <label>Current AI Lifecycle Stage</label>
+                    <div className="detail-label-row">
+                      <label>Current AI Lifecycle Stage</label>
+                      {activeProject && selectedPeriod && (
+                        <CommentIcon
+                          fieldRef="currentAiStage"
+                          projectId={activeProject.id}
+                          periodId={selectedPeriod}
+                          displayName="Current AI Stage"
+                        />
+                      )}
+                    </div>
                     <select 
                       className="detail-input"
                       value={projectDetails.currentAiStage}
@@ -1345,7 +1463,17 @@ const App: React.FC = () => {
                     </select>
                   </div>
                   <div className="detail-group">
-                    <label>Target Date for Start of Next AI Lifecycle Stage</label>
+                    <div className="detail-label-row">
+                      <label>Target Date for Start of Next AI Lifecycle Stage</label>
+                      {activeProject && selectedPeriod && (
+                        <CommentIcon
+                          fieldRef="targetNextStageDate"
+                          projectId={activeProject.id}
+                          periodId={selectedPeriod}
+                          displayName="Target Next Stage Date"
+                        />
+                      )}
+                    </div>
                     <input 
                       type="date" 
                       className="detail-input"
@@ -1354,7 +1482,17 @@ const App: React.FC = () => {
                     />
                   </div>
                   <div className="detail-group">
-                    <label>Target Project Completion Date</label>
+                    <div className="detail-label-row">
+                      <label>Target Project Completion Date</label>
+                      {activeProject && selectedPeriod && (
+                        <CommentIcon
+                          fieldRef="targetCompletionDate"
+                          projectId={activeProject.id}
+                          periodId={selectedPeriod}
+                          displayName="Target Completion Date"
+                        />
+                      )}
+                    </div>
                     <input 
                       type="date" 
                       className="detail-input"
@@ -1363,7 +1501,17 @@ const App: React.FC = () => {
                     />
                   </div>
                   <div className="detail-group">
-                    <label>Budget</label>
+                    <div className="detail-label-row">
+                      <label>Budget</label>
+                      {activeProject && selectedPeriod && (
+                        <CommentIcon
+                          fieldRef="budget"
+                          projectId={activeProject.id}
+                          periodId={selectedPeriod}
+                          displayName="Budget"
+                        />
+                      )}
+                    </div>
                     <input 
                       type="text" 
                       className="detail-input" 

@@ -1,301 +1,298 @@
 /* ==========================================================================
-   Dark Amber/Gold Sticky Note Comment Icons
+   Comment Icons - Clean, Modern Design
    ========================================================================== */
 
 /* Comment Icon Wrapper */
 .comment-icon-wrapper {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
 }
 
-/* The Beautiful Dark Amber/Gold Sticky Note */
+/* The Comment Icon Button */
 .comment-icon {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: var(--sticky-note-bg);
-  border: none;
-  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 1.5px solid var(--text-tertiary);
+  border-radius: 50%;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--sticky-note-shadow);
-  transform: rotate(-2deg);
-  color: #78350f; /* Dark amber text */
+  transition: all 0.2s ease;
+  color: var(--text-tertiary);
   font-weight: 600;
+  opacity: 0.6;
 }
 
 /* Hover Effects */
 .comment-icon:hover {
-  background: var(--sticky-note-hover);
-  transform: rotate(0deg) scale(1.1);
-  box-shadow: var(--sticky-note-glow);
-  z-index: 20;
+  background: var(--accent-primary, #3b82f6);
+  border-color: var(--accent-primary, #3b82f6);
+  color: white;
+  opacity: 1;
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
 
 .comment-icon:active {
-  transform: rotate(0deg) scale(0.95);
+  transform: scale(0.95);
 }
 
 /* Icon SVG Styling */
-.comment-icon-svg {
-  width: 16px;
-  height: 16px;
-  stroke-width: 2.5;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+.comment-icon svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
 }
 
 /* Comment Count Badge */
-.comment-count-badge {
+.comment-count {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #dc2626; /* Red for visibility */
+  top: -4px;
+  right: -4px;
+  background: var(--accent-primary, #3b82f6);
   color: white;
   border-radius: 50%;
-  width: 18px;
-  height: 18px;
+  min-width: 16px;
+  height: 16px;
   font-size: 10px;
   font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 4px;
   line-height: 1;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  border: 2px solid var(--background-secondary);
-  animation: pulse-once 0.4s ease-out;
-}
-
-@keyframes pulse-once {
-  0% {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  border: 1.5px solid var(--bg-primary, var(--background-primary, #ffffff));
 }
 
 /* States */
 .comment-icon.has-comments {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  box-shadow: 
-    var(--sticky-note-shadow),
-    0 0 0 2px rgba(251, 191, 36, 0.3);
+  background: var(--bg-tertiary, rgba(59, 130, 246, 0.05));
+  border-color: var(--accent-primary, #3b82f6);
+  color: var(--accent-primary, #3b82f6);
+  opacity: 0.9;
 }
 
 .comment-icon.has-unresolved {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  box-shadow: 
-    var(--sticky-note-glow),
-    0 0 0 2px rgba(239, 68, 68, 0.5);
-  animation: gentle-pulse 2s ease-in-out infinite;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+  opacity: 1;
 }
 
-@keyframes gentle-pulse {
-  0%, 100% {
-    box-shadow: 
-      var(--sticky-note-glow),
-      0 0 0 2px rgba(239, 68, 68, 0.3);
-  }
-  50% {
-    box-shadow: 
-      var(--sticky-note-glow),
-      0 0 0 4px rgba(239, 68, 68, 0.6);
-  }
-}
-
-/* Loading Spinner */
-.comment-loading-spinner {
+/* Unresolved indicator */
+.unresolved-indicator {
   position: absolute;
-  width: 12px;
-  height: 12px;
-  border: 2px solid rgba(120, 53, 15, 0.3);
-  border-top-color: #78350f;
+  top: -2px;
+  right: -2px;
+  width: 6px;
+  height: 6px;
+  background: #ef4444;
   border-radius: 50%;
+  border: 1px solid var(--bg-primary, #ffffff);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Loading State */
+.comment-icon.loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.comment-icon.loading svg {
   animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Disabled State */
 .comment-icon:disabled {
-  opacity: 0.6;
+  opacity: 0.3;
   cursor: not-allowed;
-  transform: rotate(-2deg);
 }
 
 .comment-icon:disabled:hover {
-  transform: rotate(-2deg);
-  box-shadow: var(--sticky-note-shadow);
-  background: var(--sticky-note-bg);
+  transform: none;
+  background: transparent;
+  border-color: var(--text-tertiary);
+  color: var(--text-tertiary);
 }
 
 /* Positioning for Different Field Types */
 
-/* Form Fields */
-.form-field {
-  position: relative;
+/* Section Headers - inline with title */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.form-field .comment-icon-wrapper {
-  top: 32px; /* Below label */
-  right: 8px;
+.section-header h3,
+.section-header h4 {
+  margin: 0;
+  flex-grow: 1;
+}
+
+.section-header .comment-icon-wrapper {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Detail Label Rows in Sidebar */
+.detail-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.detail-label-row label {
+  margin: 0;
+  flex-grow: 1;
+}
+
+.detail-label-row .comment-icon-wrapper {
+  flex-shrink: 0;
+}
+
+/* Sidebar Header - Prevent overlap with Save button */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.sidebar-header h4 {
+  margin: 0;
+  flex-grow: 1;
 }
 
 /* Table Cells */
-.benefits-table td {
-  position: relative;
-}
-
-.benefits-table td .comment-icon-wrapper {
-  top: 4px;
-  right: 4px;
-}
-
+.benefits-table td,
 .steps-table td {
   position: relative;
 }
 
+.benefits-table td .comment-icon-wrapper,
 .steps-table td .comment-icon-wrapper {
+  position: absolute;
   top: 4px;
   right: 4px;
 }
 
-/* Content Areas */
-.content-section {
-  position: relative;
-}
-
-.risks-content,
-.updates-content {
-  position: relative;
-}
-
-.risks-content + .comment-icon-wrapper,
-.updates-content + .comment-icon-wrapper {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-}
-
-/* Sticky Note Paper Effect */
-.comment-icon::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%);
-  border-radius: 8px;
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.comment-icon:hover::before {
-  opacity: 1;
-}
-
-/* Sticky Note Shadow Effect */
-.comment-icon::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  right: -2px;
-  bottom: -2px;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
-  z-index: -2;
-  transform: rotate(1deg);
-  transition: all 0.3s ease;
-}
-
-.comment-icon:hover::after {
-  transform: rotate(0deg);
-  opacity: 0.8;
-}
-
 /* Multiple Comment Icons in Same Area */
 .comment-icons-cluster {
-  position: relative;
-  display: flex;
+  display: inline-flex;
   gap: 4px;
-}
-
-.comment-icons-cluster .comment-icon {
-  position: relative;
-}
-
-.comment-icons-cluster .comment-icon:nth-child(2) {
-  transform: rotate(2deg);
-  margin-left: -8px;
-}
-
-.comment-icons-cluster .comment-icon:nth-child(3) {
-  transform: rotate(-3deg);
-  margin-left: -8px;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .comment-icon {
-    width: 28px;
-    height: 28px;
-  }
-  
-  .comment-icon-svg {
-    width: 14px;
-    height: 14px;
-  }
-  
-  .comment-count-badge {
-    width: 16px;
-    height: 16px;
-    font-size: 9px;
-    top: -4px;
-    right: -4px;
-  }
-  
-  .comment-icon-wrapper {
-    top: 4px;
-    right: 4px;
-  }
+  align-items: center;
 }
 
 /* Accessibility */
 .comment-icon:focus {
   outline: none;
-  box-shadow: 
-    var(--sticky-note-glow),
-    0 0 0 3px rgba(59, 130, 246, 0.5);
 }
 
 .comment-icon:focus-visible {
-  outline: 2px solid var(--primary-color);
+  outline: 2px solid var(--accent-primary, #3b82f6);
   outline-offset: 2px;
+  opacity: 1;
+}
+
+/* Dark Mode Adjustments */
+.theme-dark .comment-icon {
+  border-color: var(--text-tertiary, #64748b);
+  color: var(--text-tertiary, #64748b);
+}
+
+.theme-dark .comment-icon:hover {
+  background: var(--accent-primary, #3b82f6);
+  border-color: var(--accent-primary, #3b82f6);
+  color: white;
+  box-shadow: 0 2px 12px rgba(59, 130, 246, 0.3);
+}
+
+.theme-dark .comment-icon.has-comments {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--accent-primary, #3b82f6);
+  color: var(--accent-primary, #3b82f6);
+}
+
+.theme-dark .comment-icon.has-unresolved {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.theme-dark .comment-count {
+  border-color: var(--bg-primary, #1e293b);
+}
+
+.theme-dark .unresolved-indicator {
+  border-color: var(--bg-primary, #1e293b);
+}
+
+/* Light Mode Specific */
+.theme-light .comment-icon {
+  border-color: var(--text-tertiary, #94a3b8);
+  color: var(--text-tertiary, #94a3b8);
+}
+
+.theme-light .comment-icon:hover {
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+.theme-light .comment-icon.has-comments {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.theme-light .comment-icon.has-unresolved {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .comment-icon {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .comment-icon svg {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .comment-count {
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
+    top: -3px;
+    right: -3px;
+  }
 }
 
 /* High Contrast Mode */
 @media (prefers-contrast: high) {
   .comment-icon {
-    border: 2px solid #000;
-    background: #ffb000;
-    color: #000;
+    border-width: 2px;
   }
   
-  .comment-count-badge {
-    background: #000;
-    color: #fff;
-    border-color: #000;
+  .comment-count {
+    font-weight: 900;
   }
 }
 
@@ -310,17 +307,12 @@
     animation: none;
   }
   
-  .comment-count-badge {
+  .unresolved-indicator {
     animation: none;
   }
   
-  .comment-loading-spinner {
+  .comment-icon.loading svg {
     animation: none;
-  }
-  
-  .comment-icon::before,
-  .comment-icon::after {
-    transition: none;
   }
 }
 

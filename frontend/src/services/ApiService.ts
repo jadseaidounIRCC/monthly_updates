@@ -85,26 +85,35 @@ class ApiService {
 
   // Comments
   static async getComments(projectId: string, periodId: string, fieldReference?: string): Promise<Comment[]> {
-    let url = `/comments?projectId=${projectId}&periodId=${periodId}`;
+    let url: string;
     if (fieldReference) {
-      url += `&fieldReference=${fieldReference}`;
+      // Use the field-specific endpoint
+      url = `/comments/field/${projectId}/${periodId}/${encodeURIComponent(fieldReference)}`;
+    } else {
+      // Use the project-wide endpoint
+      url = `/comments/project/${projectId}?periodId=${periodId}`;
     }
     const response = await api.get(url);
-    return response.data;
+    return response.data.data || response.data; // Handle the API response wrapper
   }
 
   static async createComment(commentData: Omit<Comment, 'id' | 'createdAt' | 'updatedAt' | 'replies'>): Promise<Comment> {
     const response = await api.post('/comments', commentData);
-    return response.data;
+    return response.data.data || response.data; // Handle the API response wrapper
   }
 
   static async updateComment(id: string, updates: Partial<Comment>): Promise<Comment> {
     const response = await api.put(`/comments/${id}`, updates);
-    return response.data;
+    return response.data.data || response.data;
   }
 
   static async deleteComment(id: string): Promise<void> {
     await api.delete(`/comments/${id}`);
+  }
+
+  static async addReply(parentCommentId: string, replyData: { authorName: string; content: string }): Promise<Comment> {
+    const response = await api.post(`/comments/${parentCommentId}/reply`, replyData);
+    return response.data.data || response.data;
   }
 
   // Next Steps

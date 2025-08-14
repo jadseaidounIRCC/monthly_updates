@@ -804,6 +804,17 @@ textarea {
     font-size: 0.8rem;
 }
 
+.detail-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.375rem;
+}
+
+.detail-label-row label {
+    margin-bottom: 0;
+}
+
 .detail-input {
     width: 100%;
     padding: 0.375rem 0.5rem;
