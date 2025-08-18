@@ -31,7 +31,7 @@ class DatabaseConfig {
       }
       
       if (!sequelizeInstance) {
-        throw new Error('Could not initialize any database connection');
+        throw new Error('No database available. MySQL connection failed and SQLite is not installed or unavailable.');
       }
       
       this.sequelize = sequelizeInstance;
@@ -106,6 +106,14 @@ class DatabaseConfig {
 
   async setupSQLite() {
     try {
+      // Check if sqlite3 is available
+      try {
+        require.resolve('sqlite3');
+      } catch (e) {
+        logger.warn('SQLite3 package not installed. SQLite fallback unavailable.');
+        return null;
+      }
+      
       // Create data directory if it doesn't exist
       const dataDir = path.join(__dirname, '../../data');
       if (!fs.existsSync(dataDir)) {
@@ -149,7 +157,7 @@ class DatabaseConfig {
       
     } catch (error) {
       logger.error('SQLite setup failed:', error.message);
-      throw error;
+      return null;
     }
   }
 

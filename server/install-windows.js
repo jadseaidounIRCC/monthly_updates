@@ -65,20 +65,19 @@ function main() {
     return;
   }
 
-  // Try replacing bcrypt with bcryptjs
-  console.log('\n🔧 Attempting to replace bcrypt with bcryptjs...');
-  runCommand('npm uninstall bcrypt', 'Uninstalling bcrypt');
+  // Try installing without sqlite3 first
+  console.log('\n🔧 Installing dependencies without sqlite3...');
+  runCommand('npm install --omit=optional', 'Installing without optional dependencies');
   
-  if (runCommand('npm install bcryptjs', 'Installing bcryptjs as alternative')) {
-    console.log('\n⚠️  bcrypt has been replaced with bcryptjs.');
-    console.log('⚠️  You may need to update imports in your code from "bcrypt" to "bcryptjs"');
-    
-    // Install remaining dependencies
-    if (runCommand('npm install', 'Installing remaining dependencies')) {
-      console.log('\n🎉 Installation completed with bcryptjs alternative!');
-      return;
-    }
+  // Try to get sqlite3 prebuilt binary
+  console.log('\n🔧 Attempting to install sqlite3 with prebuilt binary...');
+  if (runCommand('npm install sqlite3@5.1.7 --fallback-to-build=false', 'Installing sqlite3 prebuilt')) {
+    console.log('\n🎉 Installation completed with sqlite3!');
+    return;
   }
+  
+  console.log('\n⚠️  Could not install sqlite3 - will run without SQLite support');
+  console.log('The server will use MySQL only mode.');
 
   console.log('\n❌ All installation methods failed.');
   console.log('💡 Manual steps to try:');
