@@ -1,13 +1,56 @@
 const { Sequelize } = require('sequelize');
 const logger = require('./logger');
+const path = require('path');
+const fs = require('fs');
 
 class DatabaseConfig {
   constructor() {
     this.sequelize = null;
     this.isConnected = false;
+    this.dbType = null; // 'mysql' or 'sqlite'
   }
 
   async initialize() {
+    try {
+      // Check if we should force SQLite
+      const forceSQLite = process.env.USE_SQLITE === 'true' || process.env.DATABASE_TYPE === 'sqlite';
+      
+      // Check if we should force MySQL
+      const forceMySQL = process.env.USE_MYSQL === 'true' || process.env.DATABASE_TYPE === 'mysql';
+      
+      let sequelizeInstance = null;
+      
+      // Try MySQL first (unless SQLite is forced)
+      if (!forceSQLite) {
+        sequelizeInstance = await this.tryMySQL();
+      }
+      
+      // Fall back to SQLite if MySQL fails or is not forced
+      if (!sequelizeInstance && !forceMySQL) {
+        sequelizeInstance = await this.setupSQLite();
+      }
+      
+      if (!sequelizeInstance) {
+        throw new Error('Could not initialize any database connection');
+      }
+      
+      this.sequelize = sequelizeInstance;
+      
+      // Test the connection
+      await this.testConnection();
+      
+      logger.info(`Database connection initialized successfully (${this.dbType})`);
+      return this.sequelize;
+    } catch (error) {
+      logger.error('Failed to initialize database connection:', {
+        error: error.message,
+        stack: error.stack
+      });
+      throw error;
+    }
+  }
+
+  async tryMySQL() {
     try {
       const isLocal = process.env.DB_USE_LOCAL === 'True' || process.env.RUN_LOCAL === 'True';
       
@@ -46,18 +89,66 @@ class DatabaseConfig {
         timezone: '+00:00'
       };
 
-      this.sequelize = new Sequelize(dbConfig);
+      const sequelize = new Sequelize(dbConfig);
       
-      // Test the connection
-      await this.testConnection();
+      // Test MySQL connection
+      await sequelize.authenticate();
       
-      logger.info('Database connection initialized successfully');
-      return this.sequelize;
+      this.dbType = 'mysql';
+      logger.info('Successfully connected to MySQL database');
+      return sequelize;
+      
     } catch (error) {
-      logger.error('Failed to initialize database connection:', {
-        error: error.message,
-        stack: error.stack
-      });
+      logger.warn('MySQL connection failed, will try SQLite:', error.message);
+      return null;
+    }
+  }
+
+  async setupSQLite() {
+    try {
+      // Create data directory if it doesn't exist
+      const dataDir = path.join(__dirname, '../../data');
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+        logger.info('Created data directory for SQLite database');
+      }
+      
+      const dbPath = process.env.SQLITE_DB_PATH || path.join(dataDir, 'monthly_updates.db');
+      
+      const dbConfig = {
+        dialect: 'sqlite',
+        storage: dbPath,
+        logging: process.env.NODE_ENV === 'development' 
+          ? (msg) => logger.debug('Sequelize: ' + msg)
+          : false,
+        define: {
+          timestamps: true,
+          underscored: false,
+          paranoid: false
+        },
+        pool: {
+          max: 5,
+          min: 0,
+          acquire: 30000,
+          idle: 10000
+        }
+      };
+
+      const sequelize = new Sequelize(dbConfig);
+      
+      // Test SQLite connection
+      await sequelize.authenticate();
+      
+      this.dbType = 'sqlite';
+      logger.info(`Successfully connected to SQLite database at: ${dbPath}`);
+      
+      // Enable foreign keys for SQLite
+      await sequelize.query('PRAGMA foreign_keys = ON');
+      
+      return sequelize;
+      
+    } catch (error) {
+      logger.error('SQLite setup failed:', error.message);
       throw error;
     }
   }
@@ -72,8 +163,7 @@ class DatabaseConfig {
       this.isConnected = false;
       logger.error('Unable to connect to database:', {
         error: error.message,
-        host: process.env.DB_HOST,
-        database: process.env.DB_NAME
+        dbType: this.dbType
       });
       throw error;
     }
@@ -131,6 +221,10 @@ class DatabaseConfig {
     return this.isConnected && this.sequelize !== null;
   }
 
+  getDatabaseType() {
+    return this.dbType;
+  }
+
   // Health check method
   async healthCheck() {
     try {
@@ -140,8 +234,11 @@ class DatabaseConfig {
 
       await this.sequelize.authenticate();
       
-      // Test a simple query
-      const [results] = await this.sequelize.query('SELECT 1 as test');
+      // Test a simple query (works for both MySQL and SQLite)
+      const testQuery = this.dbType === 'sqlite' 
+        ? 'SELECT 1 as test' 
+        : 'SELECT 1 as test';
+      const [results] = await this.sequelize.query(testQuery);
       
       return {
         status: 'healthy',
@@ -149,7 +246,10 @@ class DatabaseConfig {
         details: {
           connected: this.isConnected,
           dialect: this.sequelize.getDialect(),
-          database: this.sequelize.getDatabaseName()
+          database: this.dbType === 'sqlite' 
+            ? 'SQLite file' 
+            : this.sequelize.getDatabaseName(),
+          type: this.dbType
         }
       };
     } catch (error) {

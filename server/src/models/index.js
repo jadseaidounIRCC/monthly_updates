@@ -1,4 +1,4 @@
-const { sequelize } = require('../config/database');
+const { sequelize, databaseConfig } = require('../config/database');
 const logger = require('../config/logger');
 
 // Import model definitions
@@ -28,9 +28,18 @@ const initializeModels = async () => {
     // Setup associations
     setupAssociations();
     
-    // Skip auto-sync since we have proper migration scripts
-    // Models are already synced via migrations
-    logger.info('Models initialized (using migrations, not auto-sync)');
+    // Auto-sync for SQLite or when explicitly requested
+    const dbType = databaseConfig.getDatabaseType();
+    const shouldSync = process.env.AUTO_SYNC === 'true' || 
+                       (dbType === 'sqlite' && process.env.SKIP_SYNC !== 'true');
+    
+    if (process.env.NODE_ENV !== 'production' && shouldSync) {
+      const seq = sequelize();
+      await seq.sync({ alter: true });
+      logger.info(`Database models synchronized (${dbType})`);
+    } else {
+      logger.info('Models initialized (using migrations, not auto-sync)');
+    }
     
     logger.info('Models initialized successfully');
     return true;

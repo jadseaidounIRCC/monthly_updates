@@ -72,21 +72,12 @@ const defineReportingPeriodModel = (sequelize) => {
     updatedAt: 'updated_at',
     indexes: [
       {
-        fields: ['project_id', 'period_start'],
-        name: 'idx_project_period'
-      },
-      {
         fields: ['period_start', 'period_end'],
         name: 'idx_period_dates'
       },
       {
         fields: ['is_locked'],
         name: 'idx_locked_status'
-      },
-      {
-        unique: true,
-        fields: ['project_id', 'period_start', 'period_end'],
-        name: 'unique_project_period'
       }
     ],
     hooks: {
@@ -112,7 +103,6 @@ const defineReportingPeriodModel = (sequelize) => {
         }
         
         logger.auditLog('DELETE', 'reporting_periods', period.id, {
-          projectId: period.projectId,
           periodName: period.periodName
         }, options.userId, options.req);
       }
@@ -133,7 +123,6 @@ const defineReportingPeriodModel = (sequelize) => {
     
     logger.info('Reporting period locked', {
       periodId: this.id,
-      projectId: this.projectId,
       periodName: this.periodName,
       lockedAt: this.lockedAt
     });
@@ -158,21 +147,19 @@ const defineReportingPeriodModel = (sequelize) => {
   };
 
   // Static methods
-  ReportingPeriod.findCurrentPeriod = function(projectId) {
+  ReportingPeriod.findCurrentPeriod = function() {
     const now = new Date();
     return this.findOne({
       where: {
-        projectId,
         periodStart: { [sequelize.Sequelize.Op.lte]: now },
         periodEnd: { [sequelize.Sequelize.Op.gt]: now }
       }
     });
   };
 
-  ReportingPeriod.findByProject = function(projectId, options = {}) {
-    return this.findAll({
-      where: { projectId },
-      order: [['period_start', 'DESC']],
+  ReportingPeriod.findActivePeriod = function(options = {}) {
+    return this.findOne({
+      where: { isActive: true },
       ...options
     });
   };
@@ -232,13 +219,12 @@ const defineReportingPeriodModel = (sequelize) => {
     };
   };
 
-  ReportingPeriod.createForProject = async function(projectId, periodData = null, options = {}) {
+  ReportingPeriod.createPeriod = async function(periodData = null, options = {}) {
     const period = periodData || this.calculatePeriodForDate();
     
     // Check if period already exists
     const existing = await this.findOne({
       where: {
-        projectId,
         periodStart: period.periodStart,
         periodEnd: period.periodEnd
       }
@@ -249,7 +235,6 @@ const defineReportingPeriodModel = (sequelize) => {
     }
 
     return this.create({
-      projectId,
       ...period
     }, options);
   };
