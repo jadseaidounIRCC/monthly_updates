@@ -728,6 +728,12 @@ const App: React.FC = () => {
           isActive: period.isActive || false
         }));
         setAvailablePeriods(transformedPeriods);
+        
+        // Find and select the new active period
+        const newActivePeriod = transformedPeriods.find(p => p.isActive);
+        if (newActivePeriod) {
+          setSelectedPeriod(newActivePeriod.id);
+        }
       }
       
       // Close modal and show success
@@ -1614,8 +1620,7 @@ const App: React.FC = () => {
                     
                     if (activePeriod) {
                       const currentEnd = parseLocalDate(activePeriod.endDate);
-                      const nextStart = new Date(currentEnd);
-                      nextStart.setDate(nextStart.getDate() + 1); // Day after current period ends
+                      const nextStart = new Date(currentEnd); // Start on same day as current ends (15th)
                       const nextEnd = new Date(nextStart);
                       nextEnd.setMonth(nextEnd.getMonth() + 1);
                       nextEnd.setDate(15); // Always end on 15th of next month

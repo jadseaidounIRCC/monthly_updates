@@ -17,10 +17,16 @@ class PeriodManagementService {
       let nextStartDate, nextEndDate;
 
       if (currentPeriod) {
-        // Next period starts when current ends
+        // Next period starts on the same day current ends (15th)
+        // Periods are 15th to 15th inclusive
         nextStartDate = new Date(currentPeriod.periodEnd);
-        nextEndDate = new Date(nextStartDate);
-        nextEndDate.setMonth(nextEndDate.getMonth() + 1);
+        
+        // Next period ends on the 15th of the following month
+        const nextMonth = nextStartDate.getMonth() + 1;
+        const nextYear = nextStartDate.getFullYear() + Math.floor(nextMonth / 12);
+        const adjustedMonth = nextMonth % 12;
+        
+        nextEndDate = new Date(nextYear, adjustedMonth, 15);
       } else {
         // No current period - create first one based on 15th cycle
         const now = new Date();
@@ -99,8 +105,12 @@ class PeriodManagementService {
       logger.info(`Locked ${lockedCount[0]} previous periods`);
 
       // 2. Create new reporting period
+      // Generate a shorter ID that fits in 36 chars
+      const monthYear = nextPeriod.name.toLowerCase().replace(/ /g, '-');
+      const shortId = `p-${monthYear.substring(0, 20)}-${Date.now().toString().slice(-6)}`;
+      
       const newPeriod = await ReportingPeriod.create({
-        id: `period-${nextPeriod.name.toLowerCase().replace(' ', '-')}`,
+        id: shortId,
         periodStart: nextPeriod.startDate,
         periodEnd: nextPeriod.endDate,
         periodName: nextPeriod.name,
@@ -138,9 +148,12 @@ class PeriodManagementService {
               break;
           }
 
-          // Create project data record
+          // Create project data record with shorter ID
+          // Use timestamp + random to ensure uniqueness within 36 chars
+          const dataId = `pd-${Date.now().toString().slice(-8)}-${Math.random().toString(36).slice(2, 8)}`;
+          
           await ProjectData.create({
-            id: `${project.id}-${newPeriod.id}-${fieldName}`,
+            id: dataId,
             projectId: project.id,
             periodId: newPeriod.id,
             fieldName: fieldName,

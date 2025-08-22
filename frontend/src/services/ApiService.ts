@@ -79,7 +79,7 @@ class ApiService {
   }
 
   static async createNewPeriod(): Promise<{ success: boolean; message: string; period?: ReportingPeriod }> {
-    const response = await api.post('/periods/create-next');
+    const response = await api.post('/periods/create-next', { confirmed: true });
     return response.data;
   }
 
