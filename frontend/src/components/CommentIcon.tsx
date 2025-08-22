@@ -43,7 +43,20 @@ const CommentIcon: React.FC<CommentIconProps> = ({
 
   useEffect(() => {
     loadCommentInfo();
-  }, [loadCommentInfo]);
+    
+    // Listen for comment updates
+    const handleCommentsUpdated = (event: CustomEvent) => {
+      if (event.detail.fieldRef === fieldRef) {
+        loadCommentInfo();
+      }
+    };
+    
+    window.addEventListener('commentsUpdated' as any, handleCommentsUpdated as any);
+    
+    return () => {
+      window.removeEventListener('commentsUpdated' as any, handleCommentsUpdated as any);
+    };
+  }, [loadCommentInfo, fieldRef]);
 
   const handleClick = () => {
     const fieldDisplayName = displayName || formatFieldName(fieldRef);
@@ -51,8 +64,6 @@ const CommentIcon: React.FC<CommentIconProps> = ({
     // Use the global function attached to window
     if ((window as any).openCommentModal) {
       (window as any).openCommentModal(fieldRef, fieldDisplayName, projectId, periodId);
-      // Refresh comment count after modal closes
-      setTimeout(() => loadCommentInfo(), 500);
     } else {
       console.warn('Comment modal function not available yet');
     }

@@ -325,10 +325,56 @@
     justify-content: flex-end;
 }
 
+/* Add Comment Button */
+.add-comment-button-wrapper {
+    padding: 1.5rem 0;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid var(--border-color);
+}
+
+.add-comment-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-comment-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.add-comment-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
 /* Add Comment Section */
 .add-comment-section {
     border-top: 1px solid var(--border-color);
     padding-top: 2rem;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .add-comment-section h4 {
@@ -545,6 +591,125 @@
     height: 100%;
     background: var(--primary-color);
     border-radius: 0 4px 4px 0;
+}
+
+/* Reply Context Box */
+.reply-context {
+    background: var(--background-hover);
+    border: 1px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.reply-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.replying-to-label {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 0.95rem;
+}
+
+.cancel-reply {
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.cancel-reply:hover {
+    background: var(--background-secondary);
+    color: var(--danger-color);
+}
+
+.original-comment-preview {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    padding: 0.75rem;
+    background: var(--background-color);
+    border-radius: 4px;
+    border-left: 3px solid var(--primary-color);
+    max-height: 150px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Replying Indicator on Comments */
+.replying-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.replying-indicator svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Dark theme adjustments for reply context */
+[data-theme="dark"] .reply-context {
+    background: var(--background-hover);
+    border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .original-comment-preview {
+    background: var(--background-secondary);
+}
+
+[data-theme="dark"] .cancel-reply:hover {
+    background: var(--background-color);
+}
+
+/* Mobile responsive for reply context */
+@media (max-width: 768px) {
+    .reply-context {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .original-comment-preview {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
 }
 
 /* Period selector integration styles (for next phase) */

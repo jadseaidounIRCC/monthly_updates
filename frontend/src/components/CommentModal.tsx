@@ -18,10 +18,12 @@ const CommentModal: React.FC<CommentModalProps> = ({
 }) => {
   const [newComment, setNewComment] = useState({ authorName: '', content: '' });
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyingToComment, setReplyingToComment] = useState<Comment | null>(null);
   const [editingComment, setEditingComment] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState({ authorName: '', content: '' });
   const [editContent, setEditContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showAddComment, setShowAddComment] = useState(false);
 
   if (!isOpen) return null;
 
@@ -40,6 +42,9 @@ const CommentModal: React.FC<CommentModalProps> = ({
         isResolved: false
       });
       setNewComment({ authorName: '', content: '' });
+      setShowAddComment(false);
+      // Trigger comment count refresh
+      window.dispatchEvent(new CustomEvent('commentsUpdated', { detail: { fieldRef } }));
     } catch (error) {
       console.error('Error adding comment:', error);
     } finally {
@@ -62,6 +67,10 @@ const CommentModal: React.FC<CommentModalProps> = ({
       });
       setReplyContent({ authorName: '', content: '' });
       setReplyingTo(null);
+      setReplyingToComment(null);
+      setShowAddComment(false);
+      // Trigger comment count refresh
+      window.dispatchEvent(new CustomEvent('commentsUpdated', { detail: { fieldRef } }));
     } catch (error) {
       console.error('Error adding reply:', error);
     } finally {
@@ -90,6 +99,8 @@ const CommentModal: React.FC<CommentModalProps> = ({
     try {
       setLoading(true);
       await onDeleteComment(commentId);
+      // Trigger comment count refresh
+      window.dispatchEvent(new CustomEvent('commentsUpdated', { detail: { fieldRef } }));
     } catch (error) {
       console.error('Error deleting comment:', error);
     } finally {
@@ -140,7 +151,24 @@ const CommentModal: React.FC<CommentModalProps> = ({
             <>
               <button
                 className="btn-icon reply-btn"
-                onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                onClick={() => {
+                  if (replyingTo === comment.id) {
+                    setReplyingTo(null);
+                    setReplyingToComment(null);
+                    setReplyContent({ authorName: '', content: '' });
+                  } else {
+                    setReplyingTo(comment.id);
+                    setReplyingToComment(comment);
+                    setShowAddComment(true);
+                    // Scroll to the add comment section
+                    setTimeout(() => {
+                      const addCommentSection = document.querySelector('.add-comment-section');
+                      if (addCommentSection) {
+                        addCommentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    }, 100);
+                  }
+                }}
                 title="Reply"
               >
                 <Reply size={16} />
@@ -220,55 +248,14 @@ const CommentModal: React.FC<CommentModalProps> = ({
           {comment.replies.map(reply => renderComment(reply, true))}
         </div>
       )}
-
-      {/* Reply Form */}
+      
+      {/* Visual indicator when this comment is being replied to */}
       {replyingTo === comment.id && (
-        <div className="reply-form-container">
-          <form onSubmit={(e) => { e.preventDefault(); handleReply(comment.id); }}>
-            <div className="form-group">
-              <label>Your Name:</label>
-              <input
-                type="text"
-                value={replyContent.authorName}
-                onChange={(e) => setReplyContent(prev => ({ ...prev, authorName: e.target.value }))}
-                required
-                placeholder="Enter your name"
-                className="form-control"
-              />
-            </div>
-            <div className="form-group">
-              <label>Reply:</label>
-              <textarea
-                value={replyContent.content}
-                onChange={(e) => setReplyContent(prev => ({ ...prev, content: e.target.value }))}
-                required
-                placeholder="Enter your reply..."
-                rows={2}
-                className="form-control"
-              />
-            </div>
-            <div className="form-actions">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => {
-                  setReplyingTo(null);
-                  setReplyContent({ authorName: '', content: '' });
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading}
-              >
-                Add Reply
-              </button>
-            </div>
-          </form>
+        <div className="replying-indicator">
+          <Reply size={16} /> Replying to this comment...
         </div>
       )}
+
     </div>
   );
 
@@ -296,29 +283,74 @@ const CommentModal: React.FC<CommentModalProps> = ({
             )}
           </div>
           
+          {/* Add Comment Button or Form */}
+          {!showAddComment && !replyingTo ? (
+            <div className="add-comment-button-wrapper">
+              <button 
+                className="btn btn-primary add-comment-btn"
+                onClick={() => setShowAddComment(true)}
+              >
+                <MessageCircle size={16} />
+                Add Comment
+              </button>
+            </div>
+          ) : (
           <div className="add-comment-section">
-            <h4>Add New Comment</h4>
-            <form onSubmit={handleAddComment}>
+            {replyingTo && replyingToComment && (
+              <div className="reply-context">
+                <div className="reply-header">
+                  <span className="replying-to-label">Replying to {replyingToComment.authorName}:</span>
+                  <button 
+                    className="btn-icon cancel-reply"
+                    onClick={() => {
+                      setReplyingTo(null);
+                      setReplyingToComment(null);
+                      setReplyContent({ authorName: '', content: '' });
+                      setShowAddComment(false);
+                    }}
+                    title="Cancel reply"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="original-comment-preview">
+                  {replyingToComment.content}
+                </div>
+              </div>
+            )}
+            <h4>{replyingTo ? 'Add Reply' : 'Add New Comment'}</h4>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (replyingTo) {
+                handleReply(replyingTo);
+              } else {
+                handleAddComment(e);
+              }
+            }}>
               <div className="form-group">
                 <label htmlFor="comment-author">Your Name:</label>
                 <input
                   id="comment-author"
                   type="text"
-                  value={newComment.authorName}
-                  onChange={(e) => setNewComment(prev => ({ ...prev, authorName: e.target.value }))}
+                  value={replyingTo ? replyContent.authorName : newComment.authorName}
+                  onChange={(e) => replyingTo 
+                    ? setReplyContent(prev => ({ ...prev, authorName: e.target.value }))
+                    : setNewComment(prev => ({ ...prev, authorName: e.target.value }))}
                   required
                   placeholder="Enter your name"
                   className="form-control"
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="comment-content">Comment:</label>
+                <label htmlFor="comment-content">{replyingTo ? 'Reply:' : 'Comment:'}</label>
                 <textarea
                   id="comment-content"
-                  value={newComment.content}
-                  onChange={(e) => setNewComment(prev => ({ ...prev, content: e.target.value }))}
+                  value={replyingTo ? replyContent.content : newComment.content}
+                  onChange={(e) => replyingTo
+                    ? setReplyContent(prev => ({ ...prev, content: e.target.value }))
+                    : setNewComment(prev => ({ ...prev, content: e.target.value }))}
                   required
-                  placeholder="Enter your comment..."
+                  placeholder={replyingTo ? "Enter your reply..." : "Enter your comment..."}
                   rows={3}
                   className="form-control"
                 />
@@ -327,7 +359,17 @@ const CommentModal: React.FC<CommentModalProps> = ({
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={onClose}
+                  onClick={() => {
+                    if (replyingTo) {
+                      setReplyingTo(null);
+                      setReplyingToComment(null);
+                      setReplyContent({ authorName: '', content: '' });
+                      setShowAddComment(false);
+                    } else {
+                      setShowAddComment(false);
+                      setNewComment({ authorName: '', content: '' });
+                    }
+                  }}
                 >
                   Cancel
                 </button>
@@ -336,11 +378,12 @@ const CommentModal: React.FC<CommentModalProps> = ({
                   className="btn btn-primary"
                   disabled={loading}
                 >
-                  Add Comment
+                  {replyingTo ? 'Add Reply' : 'Add Comment'}
                 </button>
               </div>
             </form>
           </div>
+          )}
         </div>
       </div>
     </div>

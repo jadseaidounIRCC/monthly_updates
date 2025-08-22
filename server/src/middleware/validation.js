@@ -208,8 +208,8 @@ const querySchemas = {
   pagination: Joi.object({
     page: Joi.number().integer().min(1).default(1).optional(),
     limit: Joi.number().integer().min(1).max(100).default(20).optional(),
-    sort: Joi.string().valid('name', 'created_at', 'updated_at').default('updated_at').optional(),
-    order: Joi.string().valid('ASC', 'DESC').default('DESC').optional()
+    sort: Joi.string().valid('name', 'created_at', 'updated_at').default('created_at').optional(),
+    order: Joi.string().valid('ASC', 'DESC').default('ASC').optional()
   }),
 
   projectFilters: Joi.object({

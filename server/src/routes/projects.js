@@ -18,8 +18,8 @@ router.get('/',
       const {
         page = 1,
         limit = 20,
-        sort = 'updated_at',
-        order = 'DESC',
+        sort = 'created_at',
+        order = 'ASC',
         stage,
         aiStage,
         search
